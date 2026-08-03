@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema(
     avatarUrl: { type: String, default: "" },
     isEmailVerified: { type: Boolean, default: false },
     language: { type: String, default: "en" },
+    emailVerificationTokenHash: { type: String, select: false },
+    emailVerificationExpires: { type: Date, select: false },
+    passwordResetTokenHash: { type: String, select: false },
+    passwordResetExpires: { type: Date, select: false },
   },
   { timestamps: true }
 );
