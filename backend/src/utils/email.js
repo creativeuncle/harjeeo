@@ -1,10 +1,14 @@
 import { Resend } from "resend";
 import { env } from "../config/env.js";
 
-const resend = new Resend(env.resendApiKey);
+const resend = env.resendApiKey ? new Resend(env.resendApiKey) : null;
 
 export async function sendVerificationEmail(to, token) {
   const link = `${env.clientUrl}/verify-email?token=${token}`;
+  if (!resend) {
+    console.warn(`RESEND_API_KEY not set — verification link for ${to}: ${link}`);
+    return;
+  }
   await resend.emails.send({
     from: env.emailFrom,
     to,
@@ -20,6 +24,10 @@ export async function sendVerificationEmail(to, token) {
 
 export async function sendPasswordResetEmail(to, token) {
   const link = `${env.clientUrl}/reset-password?token=${token}`;
+  if (!resend) {
+    console.warn(`RESEND_API_KEY not set — reset link for ${to}: ${link}`);
+    return;
+  }
   await resend.emails.send({
     from: env.emailFrom,
     to,
