@@ -10,6 +10,10 @@ import { createLowlight } from "lowlight";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import Callout from "./extensions/Callout";
 import Toggle from "./extensions/Toggle";
+import Video from "./extensions/Video";
+import Audio from "./extensions/Audio";
+import Pdf from "./extensions/Pdf";
+import Embed from "./extensions/Embed";
 import SlashCommand from "./extensions/SlashCommand";
 
 const lowlight = createLowlight();
@@ -31,6 +35,10 @@ export function baseExtensions({ placeholder = "Type '/' for commands…" } = {}
     TaskItem.configure({ nested: true }),
     Callout,
     Toggle,
+    Video,
+    Audio,
+    Pdf,
+    Embed,
     Placeholder.configure({ placeholder }),
     SlashCommand,
   ];

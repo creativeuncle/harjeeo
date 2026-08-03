@@ -12,7 +12,25 @@ import {
   SourceCodeIcon,
   Note01Icon,
   Image02Icon,
+  Video01Icon,
+  MusicNote01Icon,
+  Pdf01Icon,
+  Link04Icon,
 } from "hugeicons-react";
+
+function insertMediaNode({ editor, range, type, promptLabel }) {
+  const url = window.prompt(promptLabel);
+  if (!url) {
+    editor.chain().focus().deleteRange(range).run();
+    return;
+  }
+  editor
+    .chain()
+    .focus()
+    .deleteRange(range)
+    .insertContent({ type, attrs: { src: url } })
+    .run();
+}
 
 export function getSlashItems({ query }) {
   const items = [
@@ -117,6 +135,30 @@ export function getSlashItems({ query }) {
         }
         editor.chain().focus().deleteRange(range).setImage({ src: url }).run();
       },
+    },
+    {
+      title: "Video",
+      icon: Video01Icon,
+      command: (ctx) =>
+        insertMediaNode({ ...ctx, type: "video", promptLabel: "Video URL (YouTube, Vimeo, or .mp4 link)" }),
+    },
+    {
+      title: "Audio",
+      icon: MusicNote01Icon,
+      command: (ctx) =>
+        insertMediaNode({ ...ctx, type: "audio", promptLabel: "Audio file URL" }),
+    },
+    {
+      title: "PDF",
+      icon: Pdf01Icon,
+      command: (ctx) =>
+        insertMediaNode({ ...ctx, type: "pdf", promptLabel: "PDF file URL" }),
+    },
+    {
+      title: "Embed",
+      icon: Link04Icon,
+      command: (ctx) =>
+        insertMediaNode({ ...ctx, type: "embed", promptLabel: "URL to embed (Figma, CodePen, Twitter, etc.)" }),
     },
   ];
 
