@@ -5,6 +5,7 @@ import HomePage from "@/pages/HomePage";
 import ProjectsPage from "@/pages/projects/ProjectsPage";
 import ProjectDetailPage from "@/pages/projects/ProjectDetailPage";
 import TasksPage from "@/pages/tasks/TasksPage";
+import TaskDetailPage from "@/pages/tasks/TaskDetailPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import SignupPage from "@/pages/auth/SignupPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
           { path: "projects", element: <ProjectsPage /> },
           { path: "projects/:id", element: <ProjectDetailPage /> },
           { path: "tasks", element: <TasksPage /> },
+          { path: "tasks/:id", element: <TaskDetailPage /> },
           { path: "docs", element: <DocsPage /> },
         ],
       },
