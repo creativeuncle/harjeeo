@@ -8,6 +8,9 @@ import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import { createLowlight } from "lowlight";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import Callout from "./extensions/Callout";
+import Toggle from "./extensions/Toggle";
+import SlashCommand from "./extensions/SlashCommand";
 
 const lowlight = createLowlight();
 
@@ -26,6 +29,9 @@ export function baseExtensions({ placeholder = "Type '/' for commands…" } = {}
     Image,
     TaskList,
     TaskItem.configure({ nested: true }),
+    Callout,
+    Toggle,
     Placeholder.configure({ placeholder }),
+    SlashCommand,
   ];
 }

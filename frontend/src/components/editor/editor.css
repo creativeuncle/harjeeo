@@ -135,3 +135,112 @@
   max-width: 100%;
   border-radius: 8px;
 }
+
+/* Callout */
+.harjeeo-callout {
+  display: flex;
+  gap: 0.6em;
+  border-radius: 8px;
+  padding: 0.8em 1em;
+  background: color-mix(in srgb, var(--color-border) 35%, transparent);
+}
+.harjeeo-callout-emoji {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  font-size: 1.1em;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.harjeeo-callout-content {
+  flex: 1;
+  min-width: 0;
+}
+.harjeeo-callout-content > * + * {
+  margin-top: 0.4em;
+}
+
+/* Toggle */
+.harjeeo-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.3em;
+}
+.harjeeo-toggle-arrow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4em;
+  height: 1.4em;
+  margin-top: 0.1em;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: transform 0.15s ease;
+}
+.harjeeo-toggle[data-open="true"] .harjeeo-toggle-arrow {
+  transform: rotate(90deg);
+}
+.harjeeo-toggle-arrow:hover {
+  background: color-mix(in srgb, var(--color-border) 60%, transparent);
+}
+.harjeeo-toggle-content {
+  flex: 1;
+  min-width: 0;
+}
+.harjeeo-toggle-content > * + * {
+  margin-top: 0.4em;
+}
+.harjeeo-toggle[data-open="false"] .harjeeo-toggle-content > *:not(:first-child) {
+  display: none;
+}
+
+/* Slash command menu */
+.harjeeo-slash-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 220px;
+  max-height: 320px;
+  overflow-y: auto;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-canvas);
+  padding: 6px;
+  box-shadow: var(--shadow, 0 10px 30px rgba(0, 0, 0, 0.15));
+}
+.harjeeo-slash-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.4em 0.5em;
+  border-radius: 6px;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text);
+}
+.harjeeo-slash-item[data-selected="true"],
+.harjeeo-slash-item:hover {
+  background: color-mix(in srgb, var(--color-border) 60%, transparent);
+}
+.harjeeo-slash-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8em;
+  height: 1.8em;
+  flex-shrink: 0;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+.harjeeo-slash-item-label {
+  font-weight: 500;
+}
