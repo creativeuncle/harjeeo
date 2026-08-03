@@ -8,11 +8,13 @@ import {
   listTaskProperties,
   updateTaskProperty,
   createTaskProperty,
+  deleteTaskProperty,
 } from "@/lib/tasks";
 import { PROPERTY_TYPE_META } from "@/lib/propertyTypes";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import AddPropertyMenu from "./AddPropertyMenu";
 import PropertyValue from "./PropertyValue";
+import PropertyMenu from "./PropertyMenu";
 
 export default function TaskDetailPage() {
   const { id } = useParams();
@@ -83,6 +85,30 @@ export default function TaskDetailPage() {
     setProperties((prev) => prev.map((p) => (p._id === property._id ? updated : p)));
   }
 
+  async function handleRenameProperty(property, name) {
+    const updated = await updateTaskProperty(property._id, { name });
+    setProperties((prev) => prev.map((p) => (p._id === property._id ? updated : p)));
+  }
+
+  async function handleEditPropertyOptions(property, options) {
+    const updated = await updateTaskProperty(property._id, { options });
+    setProperties((prev) => prev.map((p) => (p._id === property._id ? updated : p)));
+  }
+
+  async function handleDuplicateProperty(property) {
+    const duplicate = await createTaskProperty({
+      name: `${property.name} copy`,
+      type: property.type,
+      options: property.options,
+    });
+    setProperties((prev) => [...prev, duplicate]);
+  }
+
+  async function handleDeleteProperty(property) {
+    await deleteTaskProperty(property._id);
+    setProperties((prev) => prev.filter((p) => p._id !== property._id));
+  }
+
   async function handleDelete() {
     if (!window.confirm("Delete this task? This can't be undone.")) return;
     await deleteTask(id);
@@ -137,17 +163,23 @@ export default function TaskDetailPage() {
         {properties.map((property) => {
           const Icon = PROPERTY_TYPE_META[property.type]?.icon;
           return (
-            <div key={property._id} className="flex items-center gap-3">
-              <span className="flex w-32 shrink-0 items-center gap-1.5 text-(--color-text-muted)">
-                {Icon && <Icon size={15} strokeWidth={1.8} />}
-                {property.name}
-              </span>
-              <PropertyValue
+            <div key={property._id} className="flex items-start gap-3">
+              <PropertyMenu
                 property={property}
-                task={task}
-                onChange={(value) => patchProperty(property.key, value)}
-                onAddOption={handleAddOption}
+                icon={Icon}
+                onRename={(name) => handleRenameProperty(property, name)}
+                onEditOptions={(options) => handleEditPropertyOptions(property, options)}
+                onDuplicate={() => handleDuplicateProperty(property)}
+                onDelete={() => handleDeleteProperty(property)}
               />
+              <div className="min-w-0 flex-1 pt-0.5">
+                <PropertyValue
+                  property={property}
+                  task={task}
+                  onChange={(value) => patchProperty(property.key, value)}
+                  onAddOption={handleAddOption}
+                />
+              </div>
             </div>
           );
         })}
