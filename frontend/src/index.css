@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --color-sidebar: #fbfbfa;
+  --color-canvas: #ffffff;
+  --color-border: #e9e9e7;
+  --color-text: #37352f;
+  --color-text-muted: #787774;
+  --color-accent: #2383e2;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-sidebar: #202020;
+    --color-canvas: #191919;
+    --color-border: #2f2f2f;
+    --color-text: #e6e6e5;
+    --color-text-muted: #9b9b9b;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-canvas);
+}
