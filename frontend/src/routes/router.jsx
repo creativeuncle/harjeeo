@@ -9,6 +9,7 @@ import SignupPage from "@/pages/auth/SignupPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 import VerifyEmailPage from "@/pages/auth/VerifyEmailPage";
+import DocsPage from "@/pages/docs/DocsPage";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
           { index: true, element: <HomePage /> },
           { path: "projects", element: <ProjectsPage /> },
           { path: "tasks", element: <TasksPage /> },
+          { path: "docs", element: <DocsPage /> },
         ],
       },
     ],

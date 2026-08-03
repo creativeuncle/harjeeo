@@ -1,0 +1,137 @@
+.harjeeo-editor {
+  position: relative;
+}
+
+.harjeeo-editor-content {
+  outline: none;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.harjeeo-editor-content > * + * {
+  margin-top: 0.5em;
+}
+
+.harjeeo-editor-content h1 {
+  font-size: 1.875em;
+  font-weight: 700;
+  margin-top: 1.2em;
+}
+.harjeeo-editor-content h2 {
+  font-size: 1.5em;
+  font-weight: 700;
+  margin-top: 1em;
+}
+.harjeeo-editor-content h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin-top: 0.9em;
+}
+.harjeeo-editor-content h4 {
+  font-size: 1.1em;
+  font-weight: 600;
+}
+.harjeeo-editor-content h5 {
+  font-size: 1em;
+  font-weight: 600;
+}
+.harjeeo-editor-content h6 {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.harjeeo-editor-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--color-text-muted);
+}
+
+.harjeeo-editor-content ul,
+.harjeeo-editor-content ol {
+  padding-left: 1.4em;
+}
+.harjeeo-editor-content ul {
+  list-style: disc;
+}
+.harjeeo-editor-content ol {
+  list-style: decimal;
+}
+
+.harjeeo-editor-content ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0.2em;
+}
+.harjeeo-editor-content ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+}
+.harjeeo-editor-content ul[data-type="taskList"] li > label {
+  margin-top: 0.35em;
+  user-select: none;
+}
+.harjeeo-editor-content ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+.harjeeo-editor-content ul[data-type="taskList"] li[data-checked="true"] > div {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.harjeeo-editor-content blockquote {
+  border-left: 3px solid var(--color-border);
+  padding-left: 0.9em;
+  color: var(--color-text-muted);
+}
+
+.harjeeo-editor-content hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 1.2em 0;
+}
+
+.harjeeo-editor-content code {
+  background: color-mix(in srgb, var(--color-border) 40%, transparent);
+  border-radius: 4px;
+  padding: 0.15em 0.35em;
+  font-size: 0.85em;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+}
+
+.harjeeo-editor-content pre {
+  background: color-mix(in srgb, var(--color-border) 30%, transparent);
+  border-radius: 8px;
+  padding: 0.8em 1em;
+  overflow-x: auto;
+}
+.harjeeo-editor-content pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+}
+
+.harjeeo-editor-content mark {
+  background: #fef08a;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 0.1em;
+}
+@media (prefers-color-scheme: dark) {
+  .harjeeo-editor-content mark {
+    background: #854d0e;
+  }
+}
+
+.harjeeo-editor-content a {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+.harjeeo-editor-content img {
+  max-width: 100%;
+  border-radius: 8px;
+}
