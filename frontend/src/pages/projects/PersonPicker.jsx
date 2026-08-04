@@ -1,15 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Cancel01Icon, UserAdd01Icon } from "hugeicons-react";
 import { useAuthStore } from "@/store/authStore";
+import { useWorkspaceStore } from "@/store/workspaceStore";
+import { listMembers } from "@/lib/workspaces";
 import Avatar from "@/components/ui/Avatar";
 
 export default function PersonPicker({ value, onChange }) {
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const currentWorkspaceId = useWorkspaceStore((s) => s.currentId);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [members, setMembers] = useState(null);
 
-  // Only the signed-in user is available until workspace members exist.
-  const people = user ? [user.name] : [];
+  useEffect(() => {
+    if (!open || !currentWorkspaceId || members) return;
+    listMembers(currentWorkspaceId).then((data) =>
+      setMembers(data.members.map((m) => m.user?.name).filter(Boolean))
+    );
+  }, [open, currentWorkspaceId, members]);
+
+  const people = members ?? (user ? [user.name] : []);
   const filtered = people.filter((name) =>
     name.toLowerCase().includes(query.toLowerCase())
   );
@@ -88,11 +100,14 @@ export default function PersonPicker({ value, onChange }) {
             <div className="mt-1 border-t border-(--color-border) pt-1">
               <button
                 type="button"
-                onClick={() =>
-                  window.alert(
-                    "Inviting teammates will be available once workspace management is built."
-                  )
-                }
+                onClick={() => {
+                  setOpen(false);
+                  if (currentWorkspaceId) {
+                    navigate(`/workspace/${currentWorkspaceId}/settings`);
+                  } else {
+                    window.alert("Create a workspace first to invite teammates.");
+                  }
+                }}
                 className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
               >
                 <UserAdd01Icon size={15} strokeWidth={1.8} />
