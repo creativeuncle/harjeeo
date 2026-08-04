@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Delete02Icon, Flag01Icon, UserIcon, Task01Icon } from "hugeicons-react";
-import { getProject, updateProject, deleteProject, STAGE_OPTIONS } from "@/lib/projects";
+import { getProject, updateProject, deleteProject } from "@/lib/projects";
 import { listTasks, updateTask } from "@/lib/tasks";
+import { listStageOptions, createStageOption } from "@/lib/projectStageOptions";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import IconPicker from "@/components/ui/IconPicker";
 import DateRangePicker from "@/components/ui/DateRangePicker";
+import SelectPicker from "@/components/ui/SelectPicker";
 import PersonPicker from "./PersonPicker";
 import TasksPicker from "./TasksPicker";
 
@@ -22,6 +24,7 @@ export default function ProjectDetailPage() {
 
   const [project, setProject] = useState(null);
   const [allTasks, setAllTasks] = useState([]);
+  const [stageOptions, setStageOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState("idle"); // idle | saving | saved
   const saveTimeout = useRef(null);
@@ -29,13 +32,20 @@ export default function ProjectDetailPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([getProject(id), listTasks(workspaceId)])
-      .then(([p, tasks]) => {
+    Promise.all([getProject(id), listTasks(workspaceId), listStageOptions(workspaceId)])
+      .then(([p, tasks, stages]) => {
         setProject(p);
         setAllTasks(tasks);
+        setStageOptions(stages);
       })
       .finally(() => setLoading(false));
   }, [id, workspaceId]);
+
+  async function handleCreateStageOption(label) {
+    const option = await createStageOption(workspaceId, { label });
+    setStageOptions((prev) => [...prev, option]);
+    return option;
+  }
 
   async function handleToggleTask(task) {
     const linking = task.projectId !== id;
@@ -129,17 +139,12 @@ export default function ProjectDetailPage() {
             <Flag01Icon size={15} strokeWidth={1.8} />
             Stage
           </span>
-          <select
+          <SelectPicker
+            options={stageOptions}
             value={project.stage}
-            onChange={(e) => patchField("stage", e.target.value)}
-            className="rounded-md border border-(--color-border) bg-(--color-canvas) px-2 py-1 text-sm outline-none"
-          >
-            {STAGE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            onSelect={(key) => patchField("stage", key)}
+            onCreate={handleCreateStageOption}
+          />
         </div>
 
         <div className="flex items-center gap-3">

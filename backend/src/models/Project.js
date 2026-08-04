@@ -4,11 +4,7 @@ const projectSchema = new mongoose.Schema(
   {
     title: { type: String, default: "Untitled", trim: true },
     icon: { type: String, default: "🎯" },
-    stage: {
-      type: String,
-      enum: ["not_started", "planning", "in_progress", "done"],
-      default: "not_started",
-    },
+    stage: { type: String, default: "not_started" },
     startDate: { type: Date, default: null },
     endDate: { type: Date, default: null },
     lead: { type: String, default: "" },

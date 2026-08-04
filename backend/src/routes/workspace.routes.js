@@ -12,6 +12,12 @@ import {
   updateMemberRole,
   removeMember,
 } from "../controllers/workspace.controller.js";
+import {
+  listStageOptions,
+  createStageOption,
+  updateStageOption,
+  deleteStageOption,
+} from "../controllers/projectStageOption.controller.js";
 import { protect } from "../middleware/auth.js";
 
 const router = Router();
@@ -31,5 +37,10 @@ router.delete("/:id/members/:memberId", removeMember);
 
 router.post("/:id/invites", inviteMember);
 router.delete("/:id/invites/:inviteId", revokeInvite);
+
+router.get("/:id/project-stage-options", listStageOptions);
+router.post("/:id/project-stage-options", createStageOption);
+router.patch("/:id/project-stage-options/:optionId", updateStageOption);
+router.delete("/:id/project-stage-options/:optionId", deleteStageOption);
 
 export default router;

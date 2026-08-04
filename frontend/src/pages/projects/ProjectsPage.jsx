@@ -10,16 +10,12 @@ import {
   Task01Icon,
   DocumentValidationIcon,
 } from "hugeicons-react";
-import { listProjects, createProject, updateProject, STAGE_OPTIONS } from "@/lib/projects";
+import { listProjects, createProject, updateProject } from "@/lib/projects";
 import { listTasks } from "@/lib/tasks";
+import { listStageOptions, createStageOption } from "@/lib/projectStageOptions";
 import DateRangePicker from "@/components/ui/DateRangePicker";
+import SelectPicker from "@/components/ui/SelectPicker";
 import { useWorkspaceStore } from "@/store/workspaceStore";
-
-const STAGE_STYLES = {
-  planning: "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300",
-  in_progress: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300",
-  done: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300",
-};
 
 function toDateInputValue(d) {
   if (!d) return null;
@@ -39,6 +35,7 @@ export default function ProjectsPage() {
   const workspaceId = useWorkspaceStore((s) => s.currentId);
   const [projects, setProjects] = useState([]);
   const [tasksByProject, setTasksByProject] = useState({});
+  const [stageOptions, setStageOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
@@ -49,8 +46,12 @@ export default function ProjectsPage() {
       return;
     }
     setLoading(true);
-    Promise.all([listProjects(workspaceId), listTasks(workspaceId)])
-      .then(([projs, tasks]) => {
+    Promise.all([
+      listProjects(workspaceId),
+      listTasks(workspaceId),
+      listStageOptions(workspaceId),
+    ])
+      .then(([projs, tasks, stages]) => {
         setProjects(projs);
         const grouped = {};
         for (const task of tasks) {
@@ -58,9 +59,16 @@ export default function ProjectsPage() {
           (grouped[task.projectId] ??= []).push(task);
         }
         setTasksByProject(grouped);
+        setStageOptions(stages);
       })
       .finally(() => setLoading(false));
   }, [workspaceId]);
+
+  async function handleCreateStageOption(label) {
+    const option = await createStageOption(workspaceId, { label });
+    setStageOptions((prev) => [...prev, option]);
+    return option;
+  }
 
   async function handleNewProject() {
     if (creating || !workspaceId) return;
@@ -117,21 +125,12 @@ export default function ProjectsPage() {
                     </td>
 
                     <td className="py-2.5 pr-4" onClick={(e) => e.stopPropagation()}>
-                      <select
+                      <SelectPicker
+                        options={stageOptions}
                         value={project.stage}
-                        onChange={(e) => patchProject(project._id, { stage: e.target.value })}
-                        className={`rounded px-2 py-0.5 text-xs font-medium outline-none ${
-                          project.stage === "not_started"
-                            ? "bg-transparent"
-                            : (STAGE_STYLES[project.stage] ?? "")
-                        }`}
-                      >
-                        {STAGE_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
+                        onSelect={(key) => patchProject(project._id, { stage: key })}
+                        onCreate={handleCreateStageOption}
+                      />
                     </td>
 
                     <td
