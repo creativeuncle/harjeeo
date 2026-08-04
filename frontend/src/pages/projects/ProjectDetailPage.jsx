@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Calendar03Icon, Delete02Icon, Flag01Icon, UserIcon } from "hugeicons-react";
 import { getProject, updateProject, deleteProject, STAGE_OPTIONS } from "@/lib/projects";
 import RichTextEditor from "@/components/editor/RichTextEditor";
+import IconPicker from "@/components/ui/IconPicker";
 
 function toDateInputValue(d) {
   if (!d) return "";
@@ -82,7 +83,17 @@ export default function ProjectDetailPage() {
         </button>
       </div>
 
-      <div className="mb-4 text-4xl">{project.icon}</div>
+      <div className="mb-4">
+        <IconPicker
+          trigger={
+            <span className="flex h-16 w-16 items-center justify-center rounded-lg text-5xl hover:bg-black/5 dark:hover:bg-white/10">
+              {project.icon || "🎯"}
+            </span>
+          }
+          onSelect={(emoji) => patchField("icon", emoji)}
+          onRemove={() => patchField("icon", "")}
+        />
+      </div>
 
       <input
         value={project.title}

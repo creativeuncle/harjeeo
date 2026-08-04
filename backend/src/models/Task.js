@@ -9,6 +9,7 @@ const taskSchema = new mongoose.Schema(
       default: "not_started",
     },
     order: { type: Number, default: 0 },
+    projectId: { type: mongoose.Schema.Types.ObjectId, ref: "Project", default: null },
     properties: { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
     content: { type: mongoose.Schema.Types.Mixed, default: null },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },

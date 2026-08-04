@@ -35,6 +35,7 @@ export const updateTask = asyncHandler(async (req, res) => {
   const updates = {};
   if ("title" in req.body) updates.title = req.body.title;
   if ("content" in req.body) updates.content = req.body.content;
+  if ("projectId" in req.body) updates.projectId = req.body.projectId || null;
   if ("properties" in req.body) {
     const task = await Task.findOne({ _id: req.params.id, owner: req.user._id });
     if (!task) {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Delete02Icon, DocumentValidationIcon } from "hugeicons-react";
+import { Delete02Icon, DocumentValidationIcon, Target02Icon } from "hugeicons-react";
 import {
   getTask,
   updateTask,
@@ -10,6 +10,7 @@ import {
   createTaskProperty,
   deleteTaskProperty,
 } from "@/lib/tasks";
+import { listProjects } from "@/lib/projects";
 import { PROPERTY_TYPE_META } from "@/lib/propertyTypes";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import AddPropertyMenu from "./AddPropertyMenu";
@@ -22,6 +23,7 @@ export default function TaskDetailPage() {
 
   const [task, setTask] = useState(null);
   const [properties, setProperties] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState("idle");
   const saveTimeout = useRef(null);
@@ -30,10 +32,11 @@ export default function TaskDetailPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([getTask(id), listTaskProperties()])
-      .then(([t, props]) => {
+    Promise.all([getTask(id), listTaskProperties(), listProjects()])
+      .then(([t, props, projs]) => {
         setTask(t);
         setProperties(props);
+        setProjects(projs);
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -160,6 +163,25 @@ export default function TaskDetailPage() {
       </div>
 
       <div className="flex flex-col gap-2 text-sm">
+        <div className="flex items-center gap-3">
+          <span className="flex w-32 shrink-0 items-center gap-1.5 text-(--color-text-muted)">
+            <Target02Icon size={15} strokeWidth={1.8} />
+            Project
+          </span>
+          <select
+            value={task.projectId ?? ""}
+            onChange={(e) => patchField("projectId", e.target.value || null)}
+            className="rounded-md border border-(--color-border) bg-(--color-canvas) px-2 py-1 text-sm outline-none"
+          >
+            <option value="">Empty</option>
+            {projects.map((p) => (
+              <option key={p._id} value={p._id}>
+                {p.icon} {p.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {properties.map((property) => {
           const Icon = PROPERTY_TYPE_META[property.type]?.icon;
           return (
