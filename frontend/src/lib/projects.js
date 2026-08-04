@@ -12,13 +12,13 @@ export const STAGE_OPTIONS = Object.entries(STAGE_LABELS).map(([value, label]) =
   label,
 }));
 
-export async function listProjects() {
-  const { data } = await api.get("/projects");
+export async function listProjects(workspaceId) {
+  const { data } = await api.get("/projects", { params: { workspaceId } });
   return data.projects;
 }
 
-export async function createProject(payload = {}) {
-  const { data } = await api.post("/projects", payload);
+export async function createProject(workspaceId, payload = {}) {
+  const { data } = await api.post("/projects", { ...payload, workspaceId });
   return data.project;
 }
 

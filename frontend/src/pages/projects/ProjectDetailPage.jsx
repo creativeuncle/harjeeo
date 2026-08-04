@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Delete02Icon, Flag01Icon, UserIcon, Task01Icon } from "hugeicons-react";
 import { getProject, updateProject, deleteProject, STAGE_OPTIONS } from "@/lib/projects";
 import { listTasks, updateTask } from "@/lib/tasks";
+import { useWorkspaceStore } from "@/store/workspaceStore";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import IconPicker from "@/components/ui/IconPicker";
 import DateRangePicker from "@/components/ui/DateRangePicker";
@@ -17,6 +18,7 @@ function toDateInputValue(d) {
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const workspaceId = useWorkspaceStore((s) => s.currentId);
 
   const [project, setProject] = useState(null);
   const [allTasks, setAllTasks] = useState([]);
@@ -27,13 +29,13 @@ export default function ProjectDetailPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([getProject(id), listTasks()])
+    Promise.all([getProject(id), listTasks(workspaceId)])
       .then(([p, tasks]) => {
         setProject(p);
         setAllTasks(tasks);
       })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, workspaceId]);
 
   async function handleToggleTask(task) {
     const linking = task.projectId !== id;

@@ -1,5 +1,7 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/User.js";
+import Workspace from "../models/Workspace.js";
+import WorkspaceMember from "../models/WorkspaceMember.js";
 import {
   signAccessToken,
   signRefreshToken,
@@ -53,6 +55,9 @@ export const register = asyncHandler(async (req, res) => {
 
   const user = await User.create({ name, email, password });
   await issueEmailVerification(user);
+
+  const workspace = await Workspace.create({ name: `${name}'s Workspace`, owner: user._id });
+  await WorkspaceMember.create({ workspace: workspace._id, user: user._id, role: "owner" });
 
   const accessToken = issueTokens(res, user._id.toString());
 

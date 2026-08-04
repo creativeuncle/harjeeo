@@ -7,13 +7,13 @@ export const STATUS_COLUMNS = [
   { key: "done", label: "Done", dot: "bg-emerald-500" },
 ];
 
-export async function listTasks() {
-  const { data } = await api.get("/tasks");
+export async function listTasks(workspaceId) {
+  const { data } = await api.get("/tasks", { params: { workspaceId } });
   return data.tasks;
 }
 
-export async function createTask(payload = {}) {
-  const { data } = await api.post("/tasks", payload);
+export async function createTask(workspaceId, payload = {}) {
+  const { data } = await api.post("/tasks", { ...payload, workspaceId });
   return data.task;
 }
 
@@ -35,13 +35,13 @@ export async function deleteTask(id) {
   await api.delete(`/tasks/${id}`);
 }
 
-export async function listTaskProperties() {
-  const { data } = await api.get("/task-properties");
+export async function listTaskProperties(workspaceId) {
+  const { data } = await api.get("/task-properties", { params: { workspaceId } });
   return data.properties;
 }
 
-export async function createTaskProperty(payload) {
-  const { data } = await api.post("/task-properties", payload);
+export async function createTaskProperty(workspaceId, payload) {
+  const { data } = await api.post("/task-properties", { ...payload, workspaceId });
   return data.property;
 }
 

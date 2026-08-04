@@ -13,6 +13,7 @@ import {
 import { listProjects, createProject, updateProject, STAGE_OPTIONS } from "@/lib/projects";
 import { listTasks } from "@/lib/tasks";
 import DateRangePicker from "@/components/ui/DateRangePicker";
+import { useWorkspaceStore } from "@/store/workspaceStore";
 
 const STAGE_STYLES = {
   planning: "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300",
@@ -35,13 +36,20 @@ const COLUMNS = [
 
 export default function ProjectsPage() {
   const navigate = useNavigate();
+  const workspaceId = useWorkspaceStore((s) => s.currentId);
   const [projects, setProjects] = useState([]);
   const [tasksByProject, setTasksByProject] = useState({});
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    Promise.all([listProjects(), listTasks()])
+    if (!workspaceId) {
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    Promise.all([listProjects(workspaceId), listTasks(workspaceId)])
       .then(([projs, tasks]) => {
         setProjects(projs);
         const grouped = {};
@@ -52,13 +60,13 @@ export default function ProjectsPage() {
         setTasksByProject(grouped);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [workspaceId]);
 
   async function handleNewProject() {
-    if (creating) return;
+    if (creating || !workspaceId) return;
     setCreating(true);
     try {
-      const project = await createProject();
+      const project = await createProject(workspaceId);
       navigate(`/projects/${project._id}`);
     } finally {
       setCreating(false);

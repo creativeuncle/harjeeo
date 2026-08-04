@@ -14,8 +14,11 @@ const projectSchema = new mongoose.Schema(
     lead: { type: String, default: "" },
     content: { type: mongoose.Schema.Types.Mixed, default: null },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    workspace: { type: mongoose.Schema.Types.ObjectId, ref: "Workspace", required: true },
   },
   { timestamps: true }
 );
+
+projectSchema.index({ workspace: 1 });
 
 export default mongoose.model("Project", projectSchema);

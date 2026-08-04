@@ -13,10 +13,11 @@ const taskSchema = new mongoose.Schema(
     properties: { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
     content: { type: mongoose.Schema.Types.Mixed, default: null },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    workspace: { type: mongoose.Schema.Types.ObjectId, ref: "Workspace", required: true },
   },
   { timestamps: true, toJSON: { flattenMaps: true } }
 );
 
-taskSchema.index({ owner: 1, status: 1, order: 1 });
+taskSchema.index({ workspace: 1, status: 1, order: 1 });
 
 export default mongoose.model("Task", taskSchema);

@@ -33,10 +33,11 @@ const taskPropertySchema = new mongoose.Schema(
     options: { type: [optionSchema], default: undefined },
     order: { type: Number, default: 0 },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    workspace: { type: mongoose.Schema.Types.ObjectId, ref: "Workspace", required: true },
   },
   { timestamps: true }
 );
 
-taskPropertySchema.index({ owner: 1, key: 1 }, { unique: true });
+taskPropertySchema.index({ workspace: 1, key: 1 }, { unique: true });
 
 export default mongoose.model("TaskProperty", taskPropertySchema);

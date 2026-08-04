@@ -9,6 +9,7 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { STATUS_COLUMNS, listTasks, createTask, moveTask } from "@/lib/tasks";
+import { useWorkspaceStore } from "@/store/workspaceStore";
 import TaskColumn from "./TaskColumn";
 
 function groupByStatus(tasks) {
@@ -23,6 +24,7 @@ function groupByStatus(tasks) {
 }
 
 export default function TasksPage() {
+  const workspaceId = useWorkspaceStore((s) => s.currentId);
   const [tasksByStatus, setTasksByStatus] = useState(
     Object.fromEntries(STATUS_COLUMNS.map((c) => [c.key, []]))
   );
@@ -34,15 +36,22 @@ export default function TasksPage() {
   );
 
   useEffect(() => {
-    listTasks()
+    if (!workspaceId) {
+      setTasksByStatus(Object.fromEntries(STATUS_COLUMNS.map((c) => [c.key, []])));
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    listTasks(workspaceId)
       .then((tasks) => setTasksByStatus(groupByStatus(tasks)))
       .finally(() => setLoading(false));
-  }, []);
+  }, [workspaceId]);
 
   async function handleAddTask(status) {
+    if (!workspaceId) return;
     setCreatingCol(status);
     try {
-      const task = await createTask({ status });
+      const task = await createTask(workspaceId, { status });
       setTasksByStatus((prev) => ({
         ...prev,
         [status]: [...prev[status], task],

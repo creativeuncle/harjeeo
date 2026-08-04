@@ -11,6 +11,7 @@ import {
   deleteTaskProperty,
 } from "@/lib/tasks";
 import { listProjects } from "@/lib/projects";
+import { useWorkspaceStore } from "@/store/workspaceStore";
 import { PROPERTY_TYPE_META } from "@/lib/propertyTypes";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import AddPropertyMenu from "./AddPropertyMenu";
@@ -20,6 +21,7 @@ import PropertyMenu from "./PropertyMenu";
 export default function TaskDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const workspaceId = useWorkspaceStore((s) => s.currentId);
 
   const [task, setTask] = useState(null);
   const [properties, setProperties] = useState([]);
@@ -32,14 +34,14 @@ export default function TaskDetailPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([getTask(id), listTaskProperties(), listProjects()])
+    Promise.all([getTask(id), listTaskProperties(workspaceId), listProjects(workspaceId)])
       .then(([t, props, projs]) => {
         setTask(t);
         setProperties(props);
         setProjects(projs);
       })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, workspaceId]);
 
   const persist = useCallback(
     (updates, propUpdates) => {
@@ -77,7 +79,7 @@ export default function TaskDetailPage() {
   }
 
   async function handleAddProperty({ name, type }) {
-    const property = await createTaskProperty({ name, type });
+    const property = await createTaskProperty(workspaceId, { name, type });
     setProperties((prev) => [...prev, property]);
   }
 
@@ -99,7 +101,7 @@ export default function TaskDetailPage() {
   }
 
   async function handleDuplicateProperty(property) {
-    const duplicate = await createTaskProperty({
+    const duplicate = await createTaskProperty(workspaceId, {
       name: `${property.name} copy`,
       type: property.type,
       options: property.options,
