@@ -15,6 +15,7 @@ import { listTasks } from "@/lib/tasks";
 import { listStageOptions, createStageOption } from "@/lib/projectStageOptions";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import SelectPicker from "@/components/ui/SelectPicker";
+import PersonPicker from "./PersonPicker";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 
 function toDateInputValue(d) {
@@ -145,11 +146,9 @@ export default function ProjectsPage() {
                     </td>
 
                     <td className="py-2.5 pr-4" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        value={project.lead}
-                        placeholder="Empty"
-                        onChange={(e) => patchProject(project._id, { lead: e.target.value })}
-                        className="w-28 rounded border border-transparent bg-transparent px-1 py-0.5 text-(--color-text-muted) outline-none hover:border-(--color-border) focus:border-(--color-border)"
+                      <PersonPicker
+                        value={project.lead || null}
+                        onChange={(name) => patchProject(project._id, { lead: name ?? "" })}
                       />
                     </td>
 

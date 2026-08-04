@@ -47,11 +47,11 @@ export function nextOptionColor(existingOptions = []) {
 }
 
 export const OPTION_COLOR_CLASSES = {
-  gray: "bg-gray-100 text-gray-800 dark:bg-gray-500/20 dark:text-gray-300",
-  orange: "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300",
-  amber: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300",
-  emerald: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300",
-  blue: "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300",
-  violet: "bg-violet-100 text-violet-800 dark:bg-violet-500/20 dark:text-violet-300",
-  pink: "bg-pink-100 text-pink-800 dark:bg-pink-500/20 dark:text-pink-300",
+  gray: "bg-gray-200 text-gray-900 dark:bg-gray-500/20 dark:text-gray-300",
+  orange: "bg-orange-200 text-orange-900 dark:bg-orange-500/20 dark:text-orange-300",
+  amber: "bg-amber-200 text-amber-900 dark:bg-amber-500/20 dark:text-amber-300",
+  emerald: "bg-emerald-200 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-300",
+  blue: "bg-blue-200 text-blue-900 dark:bg-blue-500/20 dark:text-blue-300",
+  violet: "bg-violet-200 text-violet-900 dark:bg-violet-500/20 dark:text-violet-300",
+  pink: "bg-pink-200 text-pink-900 dark:bg-pink-500/20 dark:text-pink-300",
 };
