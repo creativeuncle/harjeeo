@@ -12,6 +12,7 @@ import {
 } from "hugeicons-react";
 import { listProjects, createProject, updateProject, STAGE_OPTIONS } from "@/lib/projects";
 import { listTasks } from "@/lib/tasks";
+import DateRangePicker from "@/components/ui/DateRangePicker";
 
 const STAGE_STYLES = {
   planning: "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300",
@@ -20,7 +21,7 @@ const STAGE_STYLES = {
 };
 
 function toDateInputValue(d) {
-  if (!d) return "";
+  if (!d) return null;
   return new Date(d).toISOString().slice(0, 10);
 }
 
@@ -129,22 +130,10 @@ export default function ProjectsPage() {
                       className="whitespace-nowrap py-2.5 pr-4 text-(--color-text-muted)"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <input
-                        type="date"
-                        value={toDateInputValue(project.startDate)}
-                        onChange={(e) =>
-                          patchProject(project._id, { startDate: e.target.value || null })
-                        }
-                        className="w-[124px] rounded border border-transparent bg-transparent text-xs outline-none hover:border-(--color-border) focus:border-(--color-border)"
-                      />
-                      <span className="mx-0.5">→</span>
-                      <input
-                        type="date"
-                        value={toDateInputValue(project.endDate)}
-                        onChange={(e) =>
-                          patchProject(project._id, { endDate: e.target.value || null })
-                        }
-                        className="w-[124px] rounded border border-transparent bg-transparent text-xs outline-none hover:border-(--color-border) focus:border-(--color-border)"
+                      <DateRangePicker
+                        startDate={toDateInputValue(project.startDate)}
+                        endDate={toDateInputValue(project.endDate)}
+                        onChange={(updates) => patchProject(project._id, updates)}
                       />
                     </td>
 

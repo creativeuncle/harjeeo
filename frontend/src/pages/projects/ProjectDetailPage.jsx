@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Calendar03Icon, Delete02Icon, Flag01Icon, UserIcon, Task01Icon } from "hugeicons-react";
+import { Delete02Icon, Flag01Icon, UserIcon, Task01Icon } from "hugeicons-react";
 import { getProject, updateProject, deleteProject, STAGE_OPTIONS } from "@/lib/projects";
 import { listTasks, updateTask } from "@/lib/tasks";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import IconPicker from "@/components/ui/IconPicker";
+import DateRangePicker from "@/components/ui/DateRangePicker";
 import PersonPicker from "./PersonPicker";
 import TasksPicker from "./TasksPicker";
 
 function toDateInputValue(d) {
-  if (!d) return "";
+  if (!d) return null;
   return new Date(d).toISOString().slice(0, 10);
 }
 
@@ -58,6 +59,11 @@ export default function ProjectDetailPage() {
   function patchField(field, value) {
     setProject((prev) => ({ ...prev, [field]: value }));
     persist({ [field]: value });
+  }
+
+  function patchFields(updates) {
+    setProject((prev) => ({ ...prev, ...updates }));
+    persist(updates);
   }
 
   async function handleDelete() {
@@ -136,21 +142,12 @@ export default function ProjectDetailPage() {
 
         <div className="flex items-center gap-3">
           <span className="flex w-28 shrink-0 items-center gap-1.5 text-(--color-text-muted)">
-            <Calendar03Icon size={15} strokeWidth={1.8} />
             Timeline
           </span>
-          <input
-            type="date"
-            value={toDateInputValue(project.startDate)}
-            onChange={(e) => patchField("startDate", e.target.value || null)}
-            className="rounded-md border border-(--color-border) bg-(--color-canvas) px-2 py-1 text-sm outline-none"
-          />
-          <span className="text-(--color-text-muted)">→</span>
-          <input
-            type="date"
-            value={toDateInputValue(project.endDate)}
-            onChange={(e) => patchField("endDate", e.target.value || null)}
-            className="rounded-md border border-(--color-border) bg-(--color-canvas) px-2 py-1 text-sm outline-none"
+          <DateRangePicker
+            startDate={toDateInputValue(project.startDate)}
+            endDate={toDateInputValue(project.endDate)}
+            onChange={patchFields}
           />
         </div>
 
