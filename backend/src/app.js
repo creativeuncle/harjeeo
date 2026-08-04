@@ -10,6 +10,7 @@ import projectRoutes from "./routes/project.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 import taskPropertyRoutes from "./routes/taskProperty.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import workspaceRoutes from "./routes/workspace.routes.js";
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/task-properties", taskPropertyRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/workspaces", workspaceRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

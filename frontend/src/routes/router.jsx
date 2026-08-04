@@ -13,6 +13,8 @@ import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 import VerifyEmailPage from "@/pages/auth/VerifyEmailPage";
 import DocsPage from "@/pages/docs/DocsPage";
 import ProfilePage from "@/pages/profile/ProfilePage";
+import WorkspaceSettingsPage from "@/pages/workspace/WorkspaceSettingsPage";
+import AcceptInvitePage from "@/pages/workspace/AcceptInvitePage";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -34,6 +36,8 @@ export const router = createBrowserRouter([
           { path: "tasks/:id", element: <TaskDetailPage /> },
           { path: "docs", element: <DocsPage /> },
           { path: "profile", element: <ProfilePage /> },
+          { path: "workspace/:id/settings", element: <WorkspaceSettingsPage /> },
+          { path: "invites/accept", element: <AcceptInvitePage /> },
         ],
       },
     ],

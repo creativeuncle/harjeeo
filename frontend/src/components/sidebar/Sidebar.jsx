@@ -11,6 +11,7 @@ import {
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import Avatar from "@/components/ui/Avatar";
+import WorkspaceSwitcher from "./WorkspaceSwitcher";
 
 const teamspaceLinks = [
   { to: "/projects", label: "Projects", icon: Target02Icon },
@@ -53,9 +54,7 @@ export default function Sidebar() {
 
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-(--color-border) bg-(--color-sidebar) px-3 py-3">
-      <div className="flex items-center gap-2 px-2 py-1.5 text-sm font-semibold">
-        Harjeeo
-      </div>
+      <WorkspaceSwitcher />
 
       <nav className="mt-2 flex flex-col gap-0.5">
         <SidebarLink to="/" label="Home" icon={Home01Icon} />
