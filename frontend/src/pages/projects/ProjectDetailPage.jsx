@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Calendar03Icon, Delete02Icon, Flag01Icon, UserIcon } from "hugeicons-react";
+import { Calendar03Icon, Delete02Icon, Flag01Icon, UserIcon, Task01Icon } from "hugeicons-react";
 import { getProject, updateProject, deleteProject, STAGE_OPTIONS } from "@/lib/projects";
+import { listTasks, updateTask } from "@/lib/tasks";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import IconPicker from "@/components/ui/IconPicker";
+import PersonPicker from "./PersonPicker";
+import TasksPicker from "./TasksPicker";
 
 function toDateInputValue(d) {
   if (!d) return "";
@@ -15,6 +18,7 @@ export default function ProjectDetailPage() {
   const navigate = useNavigate();
 
   const [project, setProject] = useState(null);
+  const [allTasks, setAllTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState("idle"); // idle | saving | saved
   const saveTimeout = useRef(null);
@@ -22,10 +26,19 @@ export default function ProjectDetailPage() {
 
   useEffect(() => {
     setLoading(true);
-    getProject(id)
-      .then(setProject)
+    Promise.all([getProject(id), listTasks()])
+      .then(([p, tasks]) => {
+        setProject(p);
+        setAllTasks(tasks);
+      })
       .finally(() => setLoading(false));
   }, [id]);
+
+  async function handleToggleTask(task) {
+    const linking = task.projectId !== id;
+    const updated = await updateTask(task._id, { projectId: linking ? id : null });
+    setAllTasks((prev) => prev.map((t) => (t._id === task._id ? updated : t)));
+  }
 
   const persist = useCallback(
     (updates) => {
@@ -146,11 +159,21 @@ export default function ProjectDetailPage() {
             <UserIcon size={15} strokeWidth={1.8} />
             Lead
           </span>
-          <input
-            value={project.lead}
-            onChange={(e) => patchField("lead", e.target.value)}
-            placeholder="Empty"
-            className="rounded-md border border-transparent bg-transparent px-2 py-1 text-sm outline-none hover:border-(--color-border) focus:border-(--color-border)"
+          <PersonPicker
+            value={project.lead || null}
+            onChange={(name) => patchField("lead", name ?? "")}
+          />
+        </div>
+
+        <div className="flex items-start gap-3">
+          <span className="flex w-28 shrink-0 items-center gap-1.5 pt-1 text-(--color-text-muted)">
+            <Task01Icon size={15} strokeWidth={1.8} />
+            Tasks
+          </span>
+          <TasksPicker
+            allTasks={allTasks}
+            selectedTasks={allTasks.filter((t) => t.projectId === id)}
+            onToggle={handleToggleTask}
           />
         </div>
       </div>
