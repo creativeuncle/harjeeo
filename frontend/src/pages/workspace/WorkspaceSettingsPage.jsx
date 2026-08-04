@@ -18,6 +18,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import IconPicker from "@/components/ui/IconPicker";
 import Avatar from "@/components/ui/Avatar";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 export default function WorkspaceSettingsPage() {
   const { id } = useParams();
@@ -123,6 +124,9 @@ export default function WorkspaceSettingsPage() {
           className="flex-1 rounded-md border border-(--color-border) bg-(--color-canvas) px-3 py-2 text-lg font-semibold outline-none disabled:opacity-60"
         />
       </div>
+
+      <h2 className="mt-8 mb-2 text-sm font-medium text-(--color-text-muted)">Appearance</h2>
+      <ThemeToggle />
 
       <h2 className="mt-8 mb-2 text-sm font-medium text-(--color-text-muted)">Members</h2>
       <div className="flex flex-col gap-1">

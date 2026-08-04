@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme {
+:root {
   --color-sidebar: #fbfbfa;
   --color-canvas: #ffffff;
   --color-border: #e9e9e7;
@@ -12,13 +12,21 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  @theme {
+  :root:not([data-theme="light"]) {
     --color-sidebar: #202020;
     --color-canvas: #191919;
     --color-border: #2f2f2f;
     --color-text: #e6e6e5;
     --color-text-muted: #9b9b9b;
   }
+}
+
+:root[data-theme="dark"] {
+  --color-sidebar: #202020;
+  --color-canvas: #191919;
+  --color-border: #2f2f2f;
+  --color-text: #e6e6e5;
+  --color-text-muted: #9b9b9b;
 }
 
 * {
