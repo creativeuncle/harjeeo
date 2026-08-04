@@ -10,6 +10,7 @@ import {
 } from "hugeicons-react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
+import Avatar from "@/components/ui/Avatar";
 
 const teamspaceLinks = [
   { to: "/projects", label: "Projects", icon: Target02Icon },
@@ -78,7 +79,21 @@ export default function Sidebar() {
       </button>
 
       <div className="mt-2 flex items-center justify-between gap-2 border-t border-(--color-border) px-2 pt-2">
-        <span className="truncate text-sm">{user?.name}</span>
+        <NavLink
+          to="/profile"
+          className="flex min-w-0 flex-1 items-center gap-2 rounded-md py-1 text-sm hover:bg-black/5 dark:hover:bg-white/10"
+        >
+          {user?.avatarUrl ? (
+            <img
+              src={user.avatarUrl}
+              alt={user.name}
+              className="h-5 w-5 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <Avatar name={user?.name} />
+          )}
+          <span className="truncate">{user?.name}</span>
+        </NavLink>
         <button
           type="button"
           onClick={handleLogout}

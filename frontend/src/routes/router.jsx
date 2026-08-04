@@ -12,6 +12,7 @@ import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 import VerifyEmailPage from "@/pages/auth/VerifyEmailPage";
 import DocsPage from "@/pages/docs/DocsPage";
+import ProfilePage from "@/pages/profile/ProfilePage";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
           { path: "tasks", element: <TasksPage /> },
           { path: "tasks/:id", element: <TaskDetailPage /> },
           { path: "docs", element: <DocsPage /> },
+          { path: "profile", element: <ProfilePage /> },
         ],
       },
     ],

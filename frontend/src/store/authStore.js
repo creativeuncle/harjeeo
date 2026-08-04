@@ -11,5 +11,8 @@ export const useAuthStore = create((set) => ({
   clearSession: () =>
     set({ user: null, accessToken: null, status: "unauthenticated" }),
 
+  updateUser: (partial) =>
+    set((state) => ({ user: state.user ? { ...state.user, ...partial } : state.user })),
+
   setStatus: (status) => set({ status }),
 }));
