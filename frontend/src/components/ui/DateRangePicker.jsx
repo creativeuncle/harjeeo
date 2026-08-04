@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowLeft01Icon, ArrowRight01Icon, Calendar03Icon } from "hugeicons-react";
 
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
@@ -35,6 +36,8 @@ function buildMonthGrid(year, month) {
 
 export default function DateRangePicker({ startDate, endDate, onChange }) {
   const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState(null);
+  const triggerRef = useRef(null);
   const initial = parseISODate(startDate) ?? parseISODate(endDate) ?? new Date();
   const [viewYear, setViewYear] = useState(initial.getFullYear());
   const [viewMonth, setViewMonth] = useState(initial.getMonth());
@@ -42,6 +45,12 @@ export default function DateRangePicker({ startDate, endDate, onChange }) {
   const start = parseISODate(startDate);
   const end = parseISODate(endDate);
   const days = buildMonthGrid(viewYear, viewMonth);
+
+  function handleOpen() {
+    const rect = triggerRef.current.getBoundingClientRect();
+    setPosition({ top: rect.bottom + 4, left: rect.left });
+    setOpen(true);
+  }
 
   function changeMonth(delta) {
     let m = viewMonth + delta;
@@ -84,96 +93,103 @@ export default function DateRangePicker({ startDate, endDate, onChange }) {
         : "Empty";
 
   return (
-    <div className="relative">
+    <div className="inline-block">
       <button
+        ref={triggerRef}
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={handleOpen}
         className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm hover:bg-black/5 dark:hover:bg-white/10"
       >
         <Calendar03Icon size={14} strokeWidth={1.8} className="text-(--color-text-muted)" />
         <span className={start ? "" : "text-(--color-text-muted)"}>{label}</span>
       </button>
 
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full z-20 mt-1 w-72 rounded-lg border border-(--color-border) bg-(--color-canvas) p-3 shadow-lg">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium">
-                {new Date(viewYear, viewMonth).toLocaleDateString(undefined, {
-                  month: "long",
-                  year: "numeric",
-                })}
-              </span>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const now = new Date();
-                    setViewYear(now.getFullYear());
-                    setViewMonth(now.getMonth());
-                  }}
-                  className="mr-1 text-xs text-(--color-text-muted) hover:text-(--color-text)"
-                >
-                  Today
-                </button>
-                <button
-                  type="button"
-                  onClick={() => changeMonth(-1)}
-                  className="rounded p-1 hover:bg-black/5 dark:hover:bg-white/10"
-                >
-                  <ArrowLeft01Icon size={14} strokeWidth={1.8} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => changeMonth(1)}
-                  className="rounded p-1 hover:bg-black/5 dark:hover:bg-white/10"
-                >
-                  <ArrowRight01Icon size={14} strokeWidth={1.8} />
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-7 gap-y-1 text-center text-xs text-(--color-text-muted)">
-              {WEEKDAYS.map((w) => (
-                <div key={w}>{w}</div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-y-1 text-center text-sm">
-              {days.map((day) => {
-                const outOfMonth = day.getMonth() !== viewMonth;
-                const selected = isSameDay(day, start) || isSameDay(day, end);
-                const inRange = isInRange(day);
-                return (
-                  <button
-                    key={day.toISOString()}
-                    type="button"
-                    onClick={() => handleDayClick(day)}
-                    className={[
-                      "flex h-8 w-8 items-center justify-center rounded-full mx-auto",
-                      outOfMonth ? "text-(--color-text-muted) opacity-40" : "",
-                      selected ? "bg-(--color-accent) text-white" : "",
-                      inRange && !selected ? "bg-(--color-accent)/15 rounded-none" : "",
-                      !selected ? "hover:bg-black/5 dark:hover:bg-white/10" : "",
-                    ].join(" ")}
-                  >
-                    {day.getDate()}
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => onChange({ startDate: null, endDate: null })}
-              className="mt-2 w-full rounded-md border-t border-(--color-border) pt-2 text-left text-sm text-(--color-text-muted) hover:text-(--color-text)"
+      {open &&
+        position &&
+        createPortal(
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+            <div
+              style={{ top: position.top, left: position.left }}
+              className="fixed z-50 w-72 rounded-lg border border-(--color-border) bg-(--color-canvas) p-3 shadow-lg"
             >
-              Clear
-            </button>
-          </div>
-        </>
-      )}
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-sm font-medium">
+                  {new Date(viewYear, viewMonth).toLocaleDateString(undefined, {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const now = new Date();
+                      setViewYear(now.getFullYear());
+                      setViewMonth(now.getMonth());
+                    }}
+                    className="mr-1 text-xs text-(--color-text-muted) hover:text-(--color-text)"
+                  >
+                    Today
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => changeMonth(-1)}
+                    className="rounded p-1 hover:bg-black/5 dark:hover:bg-white/10"
+                  >
+                    <ArrowLeft01Icon size={14} strokeWidth={1.8} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => changeMonth(1)}
+                    className="rounded p-1 hover:bg-black/5 dark:hover:bg-white/10"
+                  >
+                    <ArrowRight01Icon size={14} strokeWidth={1.8} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-7 gap-y-1 text-center text-xs text-(--color-text-muted)">
+                {WEEKDAYS.map((w) => (
+                  <div key={w}>{w}</div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-7 gap-y-1 text-center text-sm">
+                {days.map((day) => {
+                  const outOfMonth = day.getMonth() !== viewMonth;
+                  const selected = isSameDay(day, start) || isSameDay(day, end);
+                  const inRange = isInRange(day);
+                  return (
+                    <button
+                      key={day.toISOString()}
+                      type="button"
+                      onClick={() => handleDayClick(day)}
+                      className={[
+                        "mx-auto flex h-8 w-8 items-center justify-center rounded-full",
+                        outOfMonth ? "text-(--color-text-muted) opacity-40" : "",
+                        selected ? "bg-(--color-accent) text-white" : "",
+                        inRange && !selected ? "rounded-none bg-(--color-accent)/15" : "",
+                        !selected ? "hover:bg-black/5 dark:hover:bg-white/10" : "",
+                      ].join(" ")}
+                    >
+                      {day.getDate()}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => onChange({ startDate: null, endDate: null })}
+                className="mt-2 w-full rounded-md border-t border-(--color-border) pt-2 text-left text-sm text-(--color-text-muted) hover:text-(--color-text)"
+              >
+                Clear
+              </button>
+            </div>
+          </>,
+          document.body
+        )}
     </div>
   );
 }
