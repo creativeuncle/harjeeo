@@ -1,10 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Delete02Icon, DocumentValidationIcon, Target02Icon } from "hugeicons-react";
+import {
+  Delete02Icon,
+  DocumentValidationIcon,
+  Target02Icon,
+  Calendar03Icon,
+  LinkSquare01Icon,
+  Alert02Icon,
+} from "hugeicons-react";
 import {
   getTask,
   updateTask,
   deleteTask,
+  listTasks,
   listTaskProperties,
   updateTaskProperty,
   createTaskProperty,
@@ -15,9 +23,16 @@ import { useWorkspaceStore } from "@/store/workspaceStore";
 import { PROPERTY_TYPE_META } from "@/lib/propertyTypes";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import CommentSection from "@/components/ui/CommentSection";
+import DatePicker from "@/components/ui/DatePicker";
+import TasksPicker from "@/pages/projects/TasksPicker";
 import AddPropertyMenu from "./AddPropertyMenu";
 import PropertyValue from "./PropertyValue";
 import PropertyMenu from "./PropertyMenu";
+
+function toDateInputValue(d) {
+  if (!d) return null;
+  return new Date(d).toISOString().slice(0, 10);
+}
 
 export default function TaskDetailPage() {
   const { id } = useParams();
@@ -27,6 +42,7 @@ export default function TaskDetailPage() {
   const [task, setTask] = useState(null);
   const [properties, setProperties] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [allTasks, setAllTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState("idle");
   const saveTimeout = useRef(null);
@@ -35,11 +51,17 @@ export default function TaskDetailPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([getTask(id), listTaskProperties(workspaceId), listProjects(workspaceId)])
-      .then(([t, props, projs]) => {
+    Promise.all([
+      getTask(id),
+      listTaskProperties(workspaceId),
+      listProjects(workspaceId),
+      listTasks(workspaceId),
+    ])
+      .then(([t, props, projs, tasks]) => {
         setTask(t);
         setProperties(props);
         setProjects(projs);
+        setAllTasks(tasks);
       })
       .finally(() => setLoading(false));
   }, [id, workspaceId]);
@@ -77,6 +99,17 @@ export default function TaskDetailPage() {
       properties: { ...prev.properties, [key]: value },
     }));
     persist(null, { [key]: value });
+  }
+
+  function handleToggleDependency(depTask) {
+    const currentIds = (task.dependsOn ?? []).map((d) => d._id);
+    const isSelected = currentIds.includes(depTask._id);
+    const newIds = isSelected
+      ? currentIds.filter((depId) => depId !== depTask._id)
+      : [...currentIds, depTask._id];
+    const newFull = allTasks.filter((t) => newIds.includes(t._id));
+    setTask((prev) => ({ ...prev, dependsOn: newFull }));
+    persist({ dependsOn: newIds });
   }
 
   async function handleAddProperty({ name, type }) {
@@ -183,6 +216,37 @@ export default function TaskDetailPage() {
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="flex w-32 shrink-0 items-center gap-1.5 text-(--color-text-muted)">
+            <Calendar03Icon size={15} strokeWidth={1.8} />
+            Due date
+          </span>
+          <DatePicker
+            value={toDateInputValue(task.dueDate)}
+            onChange={(date) => patchField("dueDate", date)}
+          />
+        </div>
+
+        <div className="flex items-start gap-3">
+          <span className="flex w-32 shrink-0 items-center gap-1.5 pt-1 text-(--color-text-muted)">
+            <LinkSquare01Icon size={15} strokeWidth={1.8} />
+            Depends on
+          </span>
+          <div className="min-w-0 flex-1">
+            <TasksPicker
+              allTasks={allTasks.filter((t) => t._id !== id)}
+              selectedTasks={task.dependsOn ?? []}
+              onToggle={handleToggleDependency}
+            />
+            {(task.dependsOn ?? []).some((d) => d.status !== "done") && (
+              <div className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+                <Alert02Icon size={13} strokeWidth={1.8} />
+                Can't be marked Done until every dependency is Done
+              </div>
+            )}
+          </div>
         </div>
 
         {properties.map((property) => {

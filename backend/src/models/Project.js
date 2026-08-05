@@ -8,6 +8,7 @@ const projectSchema = new mongoose.Schema(
     startDate: { type: Date, default: null },
     endDate: { type: Date, default: null },
     leads: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    dueReminderSentAt: { type: Date, default: null },
     content: { type: mongoose.Schema.Types.Mixed, default: null },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     workspace: { type: mongoose.Schema.Types.ObjectId, ref: "Workspace", required: true },

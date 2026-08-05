@@ -41,7 +41,7 @@ export const createTask = asyncHandler(async (req, res) => {
 });
 
 export const getTask = asyncHandler(async (req, res) => {
-  const task = await Task.findById(req.params.id);
+  const task = await Task.findById(req.params.id).populate("dependsOn", "title status");
   if (!task) {
     res.status(404);
     throw new Error("Task not found");
@@ -61,6 +61,8 @@ export const updateTask = asyncHandler(async (req, res) => {
   if ("title" in req.body) task.title = req.body.title;
   if ("content" in req.body) task.content = req.body.content;
   if ("projectId" in req.body) task.projectId = req.body.projectId || null;
+  if ("dueDate" in req.body) task.dueDate = req.body.dueDate || null;
+  if ("dependsOn" in req.body) task.dependsOn = req.body.dependsOn || [];
   if ("properties" in req.body) {
     for (const [key, value] of Object.entries(req.body.properties)) {
       task.properties.set(key, value);
@@ -83,6 +85,19 @@ export const moveTask = asyncHandler(async (req, res) => {
     throw new Error("Task not found");
   }
   await requireMembership(res, task.workspace, req.user._id);
+
+  if (status === "done" && task.dependsOn?.length) {
+    const deps = await Task.find({ _id: { $in: task.dependsOn } }).select("title status");
+    const incomplete = deps.filter((d) => d.status !== "done");
+    if (incomplete.length) {
+      res.status(409);
+      throw new Error(
+        `Blocked by unfinished task${incomplete.length > 1 ? "s" : ""}: ${incomplete
+          .map((d) => d.title)
+          .join(", ")}`
+      );
+    }
+  }
 
   const sourceStatus = task.status;
   const workspaceId = task.workspace;

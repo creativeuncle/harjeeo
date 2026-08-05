@@ -67,3 +67,13 @@ export const OPTION_TRIGGER_COLOR_CLASSES = {
   violet: "bg-violet-200/0 group-hover:bg-violet-200 text-violet-900 dark:bg-violet-500/0 dark:group-hover:bg-violet-500/20 dark:text-violet-300",
   pink: "bg-pink-200/0 group-hover:bg-pink-200 text-pink-900 dark:bg-pink-500/0 dark:group-hover:bg-pink-500/20 dark:text-pink-300",
 };
+
+export const OPTION_DOT_CLASSES = {
+  gray: "bg-gray-400",
+  orange: "bg-orange-400",
+  amber: "bg-amber-400",
+  emerald: "bg-emerald-500",
+  blue: "bg-blue-500",
+  violet: "bg-violet-500",
+  pink: "bg-pink-500",
+};

@@ -1,10 +1,30 @@
 import { api } from "./api";
 
 export const STATUS_COLUMNS = [
-  { key: "not_started", label: "Not started", dot: "bg-gray-400" },
-  { key: "up_next", label: "Up next", dot: "bg-amber-400" },
-  { key: "in_progress", label: "In progress", dot: "bg-blue-500" },
-  { key: "done", label: "Done", dot: "bg-emerald-500" },
+  {
+    key: "not_started",
+    label: "Not started",
+    dot: "bg-gray-400",
+    calendarClass: "bg-gray-200 text-gray-900 dark:bg-gray-500/20 dark:text-gray-300",
+  },
+  {
+    key: "up_next",
+    label: "Up next",
+    dot: "bg-amber-400",
+    calendarClass: "bg-amber-200 text-amber-900 dark:bg-amber-500/20 dark:text-amber-300",
+  },
+  {
+    key: "in_progress",
+    label: "In progress",
+    dot: "bg-blue-500",
+    calendarClass: "bg-blue-200 text-blue-900 dark:bg-blue-500/20 dark:text-blue-300",
+  },
+  {
+    key: "done",
+    label: "Done",
+    dot: "bg-emerald-500",
+    calendarClass: "bg-emerald-200 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-300",
+  },
 ];
 
 export async function listTasks(workspaceId) {
