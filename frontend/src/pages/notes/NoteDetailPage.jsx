@@ -1,9 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Delete02Icon } from "hugeicons-react";
+import { Delete02Icon, Calendar03Icon, Location01Icon } from "hugeicons-react";
 import { getNote, updateNote, deleteNote } from "@/lib/notes";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import IconPicker from "@/components/ui/IconPicker";
+import DatePicker from "@/components/ui/DatePicker";
+
+function toDateInputValue(d) {
+  if (!d) return null;
+  return new Date(d).toISOString().slice(0, 10);
+}
 
 export default function NoteDetailPage() {
   const { id } = useParams();
@@ -90,6 +96,32 @@ export default function NoteDetailPage() {
         placeholder="Untitled"
         className="w-full border-none bg-transparent text-3xl font-bold outline-none placeholder:text-(--color-text-muted)"
       />
+
+      <div className="mt-4 flex flex-col gap-2 text-sm">
+        <div className="flex items-center gap-3">
+          <span className="flex w-28 shrink-0 items-center gap-1.5 text-(--color-text-muted)">
+            <Calendar03Icon size={18} strokeWidth={1.8} />
+            Date
+          </span>
+          <DatePicker
+            value={toDateInputValue(note.date)}
+            onChange={(date) => patchField("date", date)}
+          />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="flex w-28 shrink-0 items-center gap-1.5 text-(--color-text-muted)">
+            <Location01Icon size={18} strokeWidth={1.8} />
+            Place
+          </span>
+          <input
+            value={note.place}
+            onChange={(e) => patchField("place", e.target.value)}
+            placeholder="Empty"
+            className="rounded-md border border-transparent bg-transparent px-2 py-1 text-sm outline-none hover:border-(--color-border) focus:border-(--color-border) placeholder:text-(--color-text-muted)"
+          />
+        </div>
+      </div>
 
       <div className="mt-8 border-t border-(--color-border) pt-6">
         <RichTextEditor
