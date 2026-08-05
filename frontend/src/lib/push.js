@@ -55,18 +55,17 @@ export async function unsubscribeFromPush() {
   await subscription.unsubscribe();
 }
 
-// Silently asks for push permission once per browser, right after the user
-// first lands in the authenticated app (post-login/signup). Never re-prompts
-// after that — the bell's "Enable push notifications" button covers retries.
-export async function maybeAutoPromptForPush() {
-  if (!isPushSupported()) return;
-  if (localStorage.getItem(AUTO_PROMPT_KEY)) return;
-  if (Notification.permission !== "default") return;
+// Browsers refuse to show the real permission dialog unless it's triggered
+// by a direct click, so we can't request it silently on login. Instead we
+// show a one-time banner right after login whose "Enable" button supplies
+// that click. shouldShowPushBanner/markPushPromptSeen track whether we've
+// already asked (accepted, denied, or dismissed) in this browser.
+export function shouldShowPushBanner() {
+  if (!isPushSupported()) return false;
+  if (localStorage.getItem(AUTO_PROMPT_KEY)) return false;
+  return Notification.permission === "default";
+}
 
+export function markPushPromptSeen() {
   localStorage.setItem(AUTO_PROMPT_KEY, "1");
-  try {
-    await subscribeToPush();
-  } catch {
-    // User dismissed or denied — the manual button remains available.
-  }
 }

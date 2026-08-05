@@ -11,7 +11,7 @@ import {
   isPushSupported,
   getExistingSubscription,
   subscribeToPush,
-  maybeAutoPromptForPush,
+  markPushPromptSeen,
 } from "@/lib/push";
 import Avatar from "@/components/ui/Avatar";
 
@@ -51,11 +51,9 @@ export default function NotificationBell() {
       setPushEnabled(false);
       return;
     }
-    maybeAutoPromptForPush().finally(() => {
-      getExistingSubscription()
-        .then((sub) => setPushEnabled(Boolean(sub)))
-        .catch(() => setPushEnabled(false));
-    });
+    getExistingSubscription()
+      .then((sub) => setPushEnabled(Boolean(sub)))
+      .catch(() => setPushEnabled(false));
   }, []);
 
   function handleOpen() {
@@ -70,6 +68,8 @@ export default function NotificationBell() {
       setPushEnabled(true);
     } catch {
       setPushEnabled(false);
+    } finally {
+      markPushPromptSeen();
     }
   }
 

@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "@/components/sidebar/Sidebar";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import PushPermissionBanner from "@/components/notifications/PushPermissionBanner";
 
 export default function AppLayout() {
   return (
@@ -10,6 +11,7 @@ export default function AppLayout() {
         <div className="flex items-center justify-end border-b border-(--color-border) px-4 py-2">
           <NotificationBell />
         </div>
+        <PushPermissionBanner />
         <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
