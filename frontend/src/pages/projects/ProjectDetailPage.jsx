@@ -9,6 +9,7 @@ import RichTextEditor from "@/components/editor/RichTextEditor";
 import IconPicker from "@/components/ui/IconPicker";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import SelectPicker from "@/components/ui/SelectPicker";
+import CommentSection from "@/components/ui/CommentSection";
 import PersonPicker from "./PersonPicker";
 import TasksPicker from "./TasksPicker";
 
@@ -189,6 +190,10 @@ export default function ProjectDetailPage() {
           onChange={(json) => patchField("content", json)}
           placeholder="Write a description, notes, or plan for this project. Type '/' for commands…"
         />
+      </div>
+
+      <div className="mt-8 border-t border-(--color-border) pt-6">
+        <CommentSection targetType="project" targetId={id} />
       </div>
     </div>
   );

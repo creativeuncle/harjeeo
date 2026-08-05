@@ -14,6 +14,7 @@ import { listProjects } from "@/lib/projects";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import { PROPERTY_TYPE_META } from "@/lib/propertyTypes";
 import RichTextEditor from "@/components/editor/RichTextEditor";
+import CommentSection from "@/components/ui/CommentSection";
 import AddPropertyMenu from "./AddPropertyMenu";
 import PropertyValue from "./PropertyValue";
 import PropertyMenu from "./PropertyMenu";
@@ -219,6 +220,10 @@ export default function TaskDetailPage() {
           onChange={(json) => patchField("content", json)}
           placeholder="Add a description. Type '/' for commands…"
         />
+      </div>
+
+      <div className="mt-8 border-t border-(--color-border) pt-6">
+        <CommentSection targetType="task" targetId={id} />
       </div>
     </div>
   );
