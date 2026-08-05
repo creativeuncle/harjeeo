@@ -136,7 +136,7 @@ export default function ProjectDetailPage() {
       <div className="mt-4 flex flex-col gap-2 text-sm">
         <div className="flex items-center gap-3">
           <span className="flex w-28 shrink-0 items-center gap-1.5 text-(--color-text-muted)">
-            <Flag01Icon size={15} strokeWidth={1.8} />
+            <Flag01Icon size={18} strokeWidth={1.8} />
             Stage
           </span>
           <SelectPicker
@@ -149,7 +149,7 @@ export default function ProjectDetailPage() {
 
         <div className="flex items-center gap-3">
           <span className="flex w-28 shrink-0 items-center gap-1.5 text-(--color-text-muted)">
-            <Calendar03Icon size={15} strokeWidth={1.8} />
+            <Calendar03Icon size={18} strokeWidth={1.8} />
             Timeline
           </span>
           <DateRangePicker
@@ -161,7 +161,7 @@ export default function ProjectDetailPage() {
 
         <div className="flex items-center gap-3">
           <span className="flex w-28 shrink-0 items-center gap-1.5 text-(--color-text-muted)">
-            <UserIcon size={15} strokeWidth={1.8} />
+            <UserIcon size={18} strokeWidth={1.8} />
             Lead
           </span>
           <PersonPicker
@@ -172,7 +172,7 @@ export default function ProjectDetailPage() {
 
         <div className="flex items-start gap-3">
           <span className="flex w-28 shrink-0 items-center gap-1.5 pt-1 text-(--color-text-muted)">
-            <Task01Icon size={15} strokeWidth={1.8} />
+            <Task01Icon size={18} strokeWidth={1.8} />
             Tasks
           </span>
           <TasksPicker

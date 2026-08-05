@@ -45,7 +45,7 @@ export default function PersonPicker({ value, onChange }) {
       >
         {value ? (
           <span className="flex items-center gap-1.5">
-            <Avatar name={value} />
+            <Avatar name={value} size={18} />
             {value}
           </span>
         ) : (

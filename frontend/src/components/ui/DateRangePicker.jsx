@@ -100,7 +100,7 @@ export default function DateRangePicker({ startDate, endDate, onChange }) {
         onClick={handleOpen}
         className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm hover:bg-black/5 dark:hover:bg-white/10"
       >
-        <Calendar03Icon size={14} strokeWidth={1.8} className="text-(--color-text-muted)" />
+        <Calendar03Icon size={18} strokeWidth={1.8} className="text-(--color-text-muted)" />
         <span className={start ? "" : "text-(--color-text-muted)"}>{label}</span>
       </button>
 
