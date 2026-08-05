@@ -24,7 +24,7 @@ export default function TasksPicker({ allTasks, selectedTasks, onToggle }) {
         {selectedTasks.map((task) => (
           <span
             key={task._id}
-            className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium"
+            className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-sm font-medium"
           >
             <DocumentValidationIcon size={12} strokeWidth={1.8} />
             {task.title}

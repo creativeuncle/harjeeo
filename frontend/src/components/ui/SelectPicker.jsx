@@ -8,7 +8,9 @@ function OptionPill({ label, color, ghost = false }) {
     ? OPTION_TRIGGER_COLOR_CLASSES[color] ?? OPTION_TRIGGER_COLOR_CLASSES.gray
     : OPTION_COLOR_CLASSES[color] ?? OPTION_COLOR_CLASSES.gray;
   return (
-    <span className={`inline-block truncate rounded px-2 py-0.5 text-xs font-medium ${classes}`}>
+    <span
+      className={`inline-block truncate rounded px-2 py-0.5 font-medium ${ghost ? "text-sm" : "text-xs"} ${classes}`}
+    >
       {label}
     </span>
   );

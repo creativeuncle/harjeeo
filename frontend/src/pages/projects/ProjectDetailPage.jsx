@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Delete02Icon, Flag01Icon, UserIcon, Task01Icon } from "hugeicons-react";
+import { Delete02Icon, Flag01Icon, Calendar03Icon, UserIcon, Task01Icon } from "hugeicons-react";
 import { getProject, updateProject, deleteProject } from "@/lib/projects";
 import { listTasks, updateTask } from "@/lib/tasks";
 import { listStageOptions, createStageOption } from "@/lib/projectStageOptions";
@@ -149,6 +149,7 @@ export default function ProjectDetailPage() {
 
         <div className="flex items-center gap-3">
           <span className="flex w-28 shrink-0 items-center gap-1.5 text-(--color-text-muted)">
+            <Calendar03Icon size={15} strokeWidth={1.8} />
             Timeline
           </span>
           <DateRangePicker
