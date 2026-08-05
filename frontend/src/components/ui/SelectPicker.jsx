@@ -1,13 +1,14 @@
 import { useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Cancel01Icon, DragDropVerticalIcon } from "hugeicons-react";
-import { OPTION_COLOR_CLASSES } from "@/lib/propertyTypes";
+import { OPTION_COLOR_CLASSES, OPTION_TRIGGER_COLOR_CLASSES } from "@/lib/propertyTypes";
 
-function OptionPill({ label, color }) {
+function OptionPill({ label, color, ghost = false }) {
+  const classes = ghost
+    ? OPTION_TRIGGER_COLOR_CLASSES[color] ?? OPTION_TRIGGER_COLOR_CLASSES.gray
+    : OPTION_COLOR_CLASSES[color] ?? OPTION_COLOR_CLASSES.gray;
   return (
-    <span
-      className={`inline-block truncate rounded px-2 py-0.5 text-xs font-medium ${OPTION_COLOR_CLASSES[color] ?? OPTION_COLOR_CLASSES.gray}`}
-    >
+    <span className={`inline-block truncate rounded px-2 py-0.5 text-xs font-medium ${classes}`}>
       {label}
     </span>
   );
@@ -54,10 +55,10 @@ export default function SelectPicker({ options, value, onSelect, onCreate, clear
         ref={triggerRef}
         type="button"
         onClick={handleOpen}
-        className="inline-flex items-center rounded-md px-1 py-0.5 hover:bg-black/5 dark:hover:bg-white/10"
+        className={`group inline-flex items-center rounded-md px-1 py-0.5 ${current ? "" : "hover:bg-black/5 dark:hover:bg-white/10"}`}
       >
         {current ? (
-          <OptionPill label={current.label} color={current.color} />
+          <OptionPill label={current.label} color={current.color} ghost />
         ) : (
           <span className="px-1 text-sm text-(--color-text-muted)">Empty</span>
         )}
