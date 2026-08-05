@@ -137,6 +137,7 @@ export default function NoteDetailPage() {
           content={note.content ?? undefined}
           onChange={(json) => patchField("content", json)}
           placeholder="Write a note. Type '/' for commands…"
+          collabDocName={`note:${id}`}
         />
       </div>
     </div>

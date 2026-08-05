@@ -1,4 +1,5 @@
 import http from "http";
+import { WebSocketServer } from "ws";
 import { Server as SocketIOServer } from "socket.io";
 import app from "./app.js";
 import { connectDB } from "./config/db.js";
@@ -6,6 +7,7 @@ import { env } from "./config/env.js";
 import { verifyAccessToken } from "./utils/tokens.js";
 import Channel from "./models/Channel.js";
 import { setIO } from "./socket.js";
+import { hocuspocus } from "./collab.js";
 import { migrateWorkspaces, migrateLegacyProjectLeads } from "./utils/migrateWorkspaces.js";
 import { scheduleDueDateReminders } from "./utils/dueDateReminders.js";
 
@@ -45,6 +47,15 @@ async function start() {
   });
 
   setIO(io);
+
+  const collabWss = new WebSocketServer({ noServer: true });
+  server.on("upgrade", (request, socket, head) => {
+    const { pathname } = new URL(request.url, "http://localhost");
+    if (pathname !== "/collab") return;
+    collabWss.handleUpgrade(request, socket, head, (ws) => {
+      hocuspocus.handleConnection(ws, request);
+    });
+  });
 
   server.listen(env.port, () => {
     console.log(`Harjeeo API running on port ${env.port}`);

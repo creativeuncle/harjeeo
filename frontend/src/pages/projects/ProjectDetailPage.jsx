@@ -213,6 +213,7 @@ export default function ProjectDetailPage() {
           onChange={(json) => patchField("content", json)}
           placeholder="Write a description, notes, or plan for this project. Type '/' for commands…"
           mentionItems={mentionItems}
+          collabDocName={`project:${id}`}
         />
       </div>
 

@@ -22,6 +22,7 @@ const lowlight = createLowlight();
 export function baseExtensions({
   placeholder = "Type '/' for commands…",
   getMentionItems = () => [],
+  collab = false,
 } = {}) {
   return [
     StarterKit.configure({
@@ -29,6 +30,8 @@ export function baseExtensions({
       codeBlock: false,
       link: false,
       underline: false,
+      // Collaboration extension owns undo/redo history when live-collab is on.
+      undoRedo: collab ? false : undefined,
     }),
     CodeBlockLowlight.configure({ lowlight }),
     Underline,

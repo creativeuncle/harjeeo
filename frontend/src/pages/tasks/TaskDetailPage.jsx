@@ -301,6 +301,7 @@ export default function TaskDetailPage() {
           onChange={(json) => patchField("content", json)}
           placeholder="Add a description. Type '/' for commands…"
           mentionItems={mentionItems}
+          collabDocName={`task:${id}`}
         />
       </div>
 
