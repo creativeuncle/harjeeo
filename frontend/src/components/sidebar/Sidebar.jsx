@@ -3,6 +3,7 @@ import {
   Task01Icon,
   Target02Icon,
   Home01Icon,
+  BubbleChatIcon,
   Calendar03Icon,
   BookOpen01Icon,
   Add01Icon,
@@ -20,12 +21,15 @@ const teamspaceLinks = [
   { to: "/docs", label: "Docs", icon: BookOpen01Icon },
 ];
 
-function SidebarLink({ to, label, icon: Icon }) {
+function SidebarLink({ to, label, icon: Icon, end = false, pill = false }) {
   return (
     <NavLink
       to={to}
+      end={end}
       className={({ isActive }) =>
-        `flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors ${
+        `flex items-center gap-2 text-sm transition-colors ${
+          pill ? "rounded-full px-3 py-1.5" : "rounded-md px-2 py-1.5"
+        } ${
           isActive
             ? "bg-black/5 text-(--color-text) font-medium dark:bg-white/10"
             : "text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
@@ -56,8 +60,9 @@ export default function Sidebar() {
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-(--color-border) bg-(--color-sidebar) px-3 py-3">
       <WorkspaceSwitcher />
 
-      <nav className="mt-2 flex flex-col gap-0.5">
-        <SidebarLink to="/" label="Home" icon={Home01Icon} />
+      <nav className="mt-2 flex items-center gap-1">
+        <SidebarLink to="/" end label="Home" icon={Home01Icon} pill />
+        <SidebarLink to="/chat" label="Chat" icon={BubbleChatIcon} pill />
       </nav>
 
       <div className="mt-4 px-2 text-xs font-medium text-(--color-text-muted)">

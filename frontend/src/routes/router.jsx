@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "@/layouts/AppLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import HomePage from "@/pages/HomePage";
+import ChatPage from "@/pages/chat/ChatPage";
 import ProjectsPage from "@/pages/projects/ProjectsPage";
 import ProjectDetailPage from "@/pages/projects/ProjectDetailPage";
 import TasksPage from "@/pages/tasks/TasksPage";
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { index: true, element: <HomePage /> },
+          { path: "chat", element: <ChatPage /> },
           { path: "projects", element: <ProjectsPage /> },
           { path: "projects/:id", element: <ProjectDetailPage /> },
           { path: "tasks", element: <TasksPage /> },
