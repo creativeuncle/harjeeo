@@ -7,7 +7,12 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from "@/lib/notifications";
-import { isPushSupported, getExistingSubscription, subscribeToPush } from "@/lib/push";
+import {
+  isPushSupported,
+  getExistingSubscription,
+  subscribeToPush,
+  maybeAutoPromptForPush,
+} from "@/lib/push";
 import Avatar from "@/components/ui/Avatar";
 
 const TYPE_ICON = {
@@ -41,13 +46,16 @@ export default function NotificationBell() {
 
   useEffect(() => {
     listNotifications().then(setNotifications).catch(() => {});
-    if (isPushSupported()) {
+
+    if (!isPushSupported()) {
+      setPushEnabled(false);
+      return;
+    }
+    maybeAutoPromptForPush().finally(() => {
       getExistingSubscription()
         .then((sub) => setPushEnabled(Boolean(sub)))
         .catch(() => setPushEnabled(false));
-    } else {
-      setPushEnabled(false);
-    }
+    });
   }, []);
 
   function handleOpen() {

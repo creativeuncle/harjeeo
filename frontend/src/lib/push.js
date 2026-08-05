@@ -1,5 +1,7 @@
 import { api } from "./api";
 
+const AUTO_PROMPT_KEY = "harjeeo_push_prompted";
+
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -11,9 +13,14 @@ export function isPushSupported() {
   return "serviceWorker" in navigator && "PushManager" in window;
 }
 
+async function ensureServiceWorkerRegistered() {
+  const existing = await navigator.serviceWorker.getRegistration();
+  return existing ?? navigator.serviceWorker.register("/service-worker.js");
+}
+
 export async function getExistingSubscription() {
   if (!isPushSupported()) return null;
-  const registration = await navigator.serviceWorker.ready;
+  const registration = await ensureServiceWorkerRegistered();
   return registration.pushManager.getSubscription();
 }
 
@@ -23,7 +30,7 @@ export async function subscribeToPush() {
   const permission = await Notification.requestPermission();
   if (permission !== "granted") throw new Error("Notification permission was not granted");
 
-  const registration = await navigator.serviceWorker.register("/service-worker.js");
+  const registration = await ensureServiceWorkerRegistered();
   await navigator.serviceWorker.ready;
 
   const { data } = await api.get("/push/vapid-public-key");
@@ -46,4 +53,20 @@ export async function unsubscribeFromPush() {
   if (!subscription) return;
   await api.post("/push/unsubscribe", { endpoint: subscription.endpoint });
   await subscription.unsubscribe();
+}
+
+// Silently asks for push permission once per browser, right after the user
+// first lands in the authenticated app (post-login/signup). Never re-prompts
+// after that — the bell's "Enable push notifications" button covers retries.
+export async function maybeAutoPromptForPush() {
+  if (!isPushSupported()) return;
+  if (localStorage.getItem(AUTO_PROMPT_KEY)) return;
+  if (Notification.permission !== "default") return;
+
+  localStorage.setItem(AUTO_PROMPT_KEY, "1");
+  try {
+    await subscribeToPush();
+  } catch {
+    // User dismissed or denied — the manual button remains available.
+  }
 }
