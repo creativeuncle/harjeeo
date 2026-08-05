@@ -4,6 +4,7 @@ import Project from "../models/Project.js";
 import Task from "../models/Task.js";
 import { requireMembership } from "../utils/workspaceAuth.js";
 import { notify } from "../utils/notify.js";
+import { logActivity } from "../utils/activity.js";
 
 const TARGET_MODELS = { project: Project, task: Task };
 
@@ -64,6 +65,16 @@ export const createComment = asyncHandler(async (req, res) => {
   res.status(201).json({ comment });
 
   const link = targetType === "project" ? `/projects/${target._id}` : `/tasks/${target._id}`;
+
+  logActivity({
+    workspace: target.workspace,
+    actorId: req.user._id,
+    action: "commented",
+    targetType,
+    targetId: target._id,
+    targetLabel: target.title,
+    link,
+  });
 
   try {
     const project = await resolveProjectLeads(targetType, target);

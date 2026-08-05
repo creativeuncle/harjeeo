@@ -3,6 +3,7 @@ import Workspace from "../models/Workspace.js";
 import WorkspaceMember from "../models/WorkspaceMember.js";
 import WorkspaceInvite from "../models/WorkspaceInvite.js";
 import User from "../models/User.js";
+import Activity from "../models/Activity.js";
 import { generateRawToken, hashToken } from "../utils/hashToken.js";
 import { sendWorkspaceInviteEmail } from "../utils/email.js";
 import { notify } from "../utils/notify.js";
@@ -100,6 +101,21 @@ export const listMembers = asyncHandler(async (req, res) => {
   }).sort({ createdAt: 1 });
 
   res.json({ members, invites });
+});
+
+export const listActivity = asyncHandler(async (req, res) => {
+  const membership = await getMembership(req.params.id, req.user._id);
+  if (!membership) {
+    res.status(404);
+    throw new Error("Workspace not found");
+  }
+
+  const activity = await Activity.find({ workspace: req.params.id })
+    .sort({ createdAt: -1 })
+    .limit(100)
+    .populate("actor", "name avatarUrl");
+
+  res.json({ activity });
 });
 
 export const inviteMember = asyncHandler(async (req, res) => {

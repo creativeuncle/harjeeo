@@ -14,11 +14,13 @@ import {
   ROLE_LABELS,
   ASSIGNABLE_ROLES,
 } from "@/lib/workspaces";
+import { listActivity } from "@/lib/activity";
 import { useAuthStore } from "@/store/authStore";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import IconPicker from "@/components/ui/IconPicker";
 import Avatar from "@/components/ui/Avatar";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import ActivityFeed from "./ActivityFeed";
 
 export default function WorkspaceSettingsPage() {
   const { id } = useParams();
@@ -30,6 +32,7 @@ export default function WorkspaceSettingsPage() {
   const [role, setRole] = useState(null);
   const [members, setMembers] = useState([]);
   const [invites, setInvites] = useState([]);
+  const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("viewer");
@@ -38,11 +41,16 @@ export default function WorkspaceSettingsPage() {
   const saveTimeout = useRef(null);
 
   const load = useCallback(async () => {
-    const [ws, mem] = await Promise.all([getWorkspace(id), listMembers(id)]);
+    const [ws, mem, act] = await Promise.all([
+      getWorkspace(id),
+      listMembers(id),
+      listActivity(id),
+    ]);
     setWorkspace(ws.workspace);
     setRole(ws.role);
     setMembers(mem.members);
     setInvites(mem.invites);
+    setActivity(act);
   }, [id]);
 
   useEffect(() => {
@@ -228,6 +236,9 @@ export default function WorkspaceSettingsPage() {
         </form>
       )}
       {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+
+      <h2 className="mt-8 mb-2 text-sm font-medium text-(--color-text-muted)">Activity</h2>
+      <ActivityFeed activity={activity} />
 
       {role === "owner" && (
         <div className="mt-10 border-t border-(--color-border) pt-6">

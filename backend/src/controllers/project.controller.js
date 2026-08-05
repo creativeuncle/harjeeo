@@ -3,6 +3,7 @@ import Project from "../models/Project.js";
 import { requireMembership } from "../utils/workspaceAuth.js";
 import { notify } from "../utils/notify.js";
 import { newlyMentionedIds } from "../utils/mentions.js";
+import { logActivity } from "../utils/activity.js";
 
 const ALLOWED_UPDATE_FIELDS = [
   "title",
@@ -34,6 +35,16 @@ export const createProject = asyncHandler(async (req, res) => {
     title: req.body?.title || "Untitled",
   });
   res.status(201).json({ project });
+
+  logActivity({
+    workspace: workspaceId,
+    actorId: req.user._id,
+    action: "created",
+    targetType: "project",
+    targetId: project._id,
+    targetLabel: project.title,
+    link: `/projects/${project._id}`,
+  });
 });
 
 export const getProject = asyncHandler(async (req, res) => {
@@ -108,6 +119,19 @@ export const updateProject = asyncHandler(async (req, res) => {
   }
 
   res.json({ project });
+
+  if (Object.keys(updates).length) {
+    logActivity({
+      workspace: project.workspace,
+      actorId: req.user._id,
+      action: "updated",
+      targetType: "project",
+      targetId: project._id,
+      targetLabel: project.title,
+      detail: Object.keys(updates).join(", "),
+      link: `/projects/${project._id}`,
+    });
+  }
 });
 
 export const deleteProject = asyncHandler(async (req, res) => {
@@ -120,4 +144,13 @@ export const deleteProject = asyncHandler(async (req, res) => {
 
   await existing.deleteOne();
   res.status(204).send();
+
+  logActivity({
+    workspace: existing.workspace,
+    actorId: req.user._id,
+    action: "deleted",
+    targetType: "project",
+    targetId: existing._id,
+    targetLabel: existing.title,
+  });
 });

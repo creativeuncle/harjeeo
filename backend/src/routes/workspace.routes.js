@@ -6,6 +6,7 @@ import {
   updateWorkspace,
   deleteWorkspace,
   listMembers,
+  listActivity,
   inviteMember,
   revokeInvite,
   acceptInvite,
@@ -36,6 +37,7 @@ router.patch("/:id", updateWorkspace);
 router.delete("/:id", deleteWorkspace);
 
 router.get("/:id/members", listMembers);
+router.get("/:id/activity", listActivity);
 router.patch("/:id/members/:memberId", updateMemberRole);
 router.delete("/:id/members/:memberId", removeMember);
 

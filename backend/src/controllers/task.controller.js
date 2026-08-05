@@ -4,6 +4,7 @@ import Project from "../models/Project.js";
 import { requireMembership } from "../utils/workspaceAuth.js";
 import { notify } from "../utils/notify.js";
 import { newlyMentionedIds } from "../utils/mentions.js";
+import { logActivity } from "../utils/activity.js";
 
 const STATUS_LABELS = {
   not_started: "Not started",
@@ -39,6 +40,16 @@ export const createTask = asyncHandler(async (req, res) => {
   });
 
   res.status(201).json({ task });
+
+  logActivity({
+    workspace: workspaceId,
+    actorId: req.user._id,
+    action: "created",
+    targetType: "task",
+    targetId: task._id,
+    targetLabel: task.title,
+    link: `/tasks/${task._id}`,
+  });
 });
 
 export const getTask = asyncHandler(async (req, res) => {
@@ -77,6 +88,22 @@ export const updateTask = asyncHandler(async (req, res) => {
   }
   await task.save();
   res.json({ task });
+
+  const changedFields = Object.keys(req.body).filter((key) =>
+    ["title", "content", "projectId", "dueDate", "dependsOn", "properties"].includes(key)
+  );
+  if (changedFields.length) {
+    logActivity({
+      workspace: task.workspace,
+      actorId: req.user._id,
+      action: "updated",
+      targetType: "task",
+      targetId: task._id,
+      targetLabel: task.title,
+      detail: changedFields.join(", "),
+      link: `/tasks/${task._id}`,
+    });
+  }
 
   if ("content" in req.body) {
     const newMentions = newlyMentionedIds(previousContent, task.content);
@@ -148,6 +175,19 @@ export const moveTask = asyncHandler(async (req, res) => {
 
   res.json({ ok: true });
 
+  if (sourceStatus !== status) {
+    logActivity({
+      workspace: workspaceId,
+      actorId: req.user._id,
+      action: "moved",
+      targetType: "task",
+      targetId: task._id,
+      targetLabel: task.title,
+      detail: `${STATUS_LABELS[sourceStatus]} → ${STATUS_LABELS[status]}`,
+      link: `/tasks/${task._id}`,
+    });
+  }
+
   if (sourceStatus !== status && task.projectId) {
     try {
       const project = await Project.findById(task.projectId).select("leads title");
@@ -178,4 +218,13 @@ export const deleteTask = asyncHandler(async (req, res) => {
 
   await task.deleteOne();
   res.status(204).send();
+
+  logActivity({
+    workspace: task.workspace,
+    actorId: req.user._id,
+    action: "deleted",
+    targetType: "task",
+    targetId: task._id,
+    targetLabel: task.title,
+  });
 });
