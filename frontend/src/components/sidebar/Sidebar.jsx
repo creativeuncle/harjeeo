@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Task01Icon,
   Target02Icon,
@@ -36,14 +36,20 @@ function SidebarLink({ to, label, icon: Icon, end = false, pill = false }) {
         }`
       }
     >
-      <Icon size={18} strokeWidth={1.8} />
-      <span>{label}</span>
+      {({ isActive }) => (
+        <>
+          <Icon size={18} strokeWidth={1.8} />
+          {(!pill || isActive) && <span>{label}</span>}
+        </>
+      )}
     </NavLink>
   );
 }
 
 export default function Sidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isChatActive = location.pathname.startsWith("/chat");
   const user = useAuthStore((s) => s.user);
   const clearSession = useAuthStore((s) => s.clearSession);
 
@@ -65,14 +71,18 @@ export default function Sidebar() {
         <SidebarLink to="/chat" label="Chat" icon={BubbleChatIcon} pill />
       </nav>
 
-      <div className="mt-4 px-2 text-xs font-medium text-(--color-text-muted)">
-        Teamspaces
-      </div>
-      <nav className="mt-1 flex flex-col gap-0.5">
-        {teamspaceLinks.map((link) => (
-          <SidebarLink key={link.to} {...link} />
-        ))}
-      </nav>
+      {!isChatActive && (
+        <>
+          <div className="mt-4 px-2 text-xs font-medium text-(--color-text-muted)">
+            Teamspaces
+          </div>
+          <nav className="mt-1 flex flex-col gap-0.5">
+            {teamspaceLinks.map((link) => (
+              <SidebarLink key={link.to} {...link} />
+            ))}
+          </nav>
+        </>
+      )}
 
       <button
         type="button"
