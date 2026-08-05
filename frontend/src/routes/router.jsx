@@ -18,6 +18,7 @@ import DocsPage from "@/pages/docs/DocsPage";
 import ProfilePage from "@/pages/profile/ProfilePage";
 import WorkspaceSettingsPage from "@/pages/workspace/WorkspaceSettingsPage";
 import AcceptInvitePage from "@/pages/workspace/AcceptInvitePage";
+import SharedContentPage from "@/pages/share/SharedContentPage";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
   { path: "/forgot-password", element: <ForgotPasswordPage /> },
   { path: "/reset-password", element: <ResetPasswordPage /> },
   { path: "/verify-email", element: <VerifyEmailPage /> },
+  { path: "/share/:type/:id", element: <SharedContentPage /> },
   {
     element: <ProtectedRoute />,
     children: [

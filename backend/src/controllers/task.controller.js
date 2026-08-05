@@ -81,6 +81,7 @@ export const updateTask = asyncHandler(async (req, res) => {
     task.dueDate = nextDueDate;
   }
   if ("dependsOn" in req.body) task.dependsOn = req.body.dependsOn || [];
+  if ("isPublic" in req.body) task.isPublic = Boolean(req.body.isPublic);
   if ("properties" in req.body) {
     for (const [key, value] of Object.entries(req.body.properties)) {
       task.properties.set(key, value);

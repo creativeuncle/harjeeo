@@ -10,6 +10,7 @@ const projectSchema = new mongoose.Schema(
     leads: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     dueReminderSentAt: { type: Date, default: null },
     content: { type: mongoose.Schema.Types.Mixed, default: null },
+    isPublic: { type: Boolean, default: false },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     workspace: { type: mongoose.Schema.Types.ObjectId, ref: "Workspace", required: true },
   },

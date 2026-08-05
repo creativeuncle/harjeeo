@@ -2,7 +2,7 @@ import asyncHandler from "express-async-handler";
 import Note from "../models/Note.js";
 import { requireMembership } from "../utils/workspaceAuth.js";
 
-const ALLOWED_UPDATE_FIELDS = ["title", "icon", "date", "place", "content"];
+const ALLOWED_UPDATE_FIELDS = ["title", "icon", "date", "place", "content", "isPublic"];
 
 export const listNotes = asyncHandler(async (req, res) => {
   await requireMembership(res, req.query.workspaceId, req.user._id);

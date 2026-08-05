@@ -15,6 +15,7 @@ const taskSchema = new mongoose.Schema(
     dueReminderSentAt: { type: Date, default: null },
     properties: { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
     content: { type: mongoose.Schema.Types.Mixed, default: null },
+    isPublic: { type: Boolean, default: false },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     workspace: { type: mongoose.Schema.Types.ObjectId, ref: "Workspace", required: true },
   },

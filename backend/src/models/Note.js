@@ -7,6 +7,7 @@ const noteSchema = new mongoose.Schema(
     date: { type: Date, default: Date.now },
     place: { type: String, default: "" },
     content: { type: mongoose.Schema.Types.Mixed, default: null },
+    isPublic: { type: Boolean, default: false },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     workspace: { type: mongoose.Schema.Types.ObjectId, ref: "Workspace", required: true },
   },

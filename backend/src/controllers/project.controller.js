@@ -13,6 +13,7 @@ const ALLOWED_UPDATE_FIELDS = [
   "endDate",
   "leads",
   "content",
+  "isPublic",
 ];
 
 const LEAD_POPULATE = { path: "leads", select: "name avatarUrl" };

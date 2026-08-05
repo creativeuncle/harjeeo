@@ -24,6 +24,7 @@ import { useWorkspaceStore } from "@/store/workspaceStore";
 import { PROPERTY_TYPE_META } from "@/lib/propertyTypes";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import CommentSection from "@/components/ui/CommentSection";
+import SharePopover from "@/components/ui/SharePopover";
 import DatePicker from "@/components/ui/DatePicker";
 import TasksPicker from "@/pages/projects/TasksPicker";
 import AddPropertyMenu from "./AddPropertyMenu";
@@ -184,14 +185,22 @@ export default function TaskDetailPage() {
         <span className="text-xs text-(--color-text-muted)">
           {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
         </span>
-        <button
-          type="button"
-          onClick={handleDelete}
-          title="Delete task"
-          className="rounded-md p-1.5 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
-        >
-          <Delete02Icon size={16} strokeWidth={1.8} />
-        </button>
+        <div className="flex items-center gap-1">
+          <SharePopover
+            isPublic={task.isPublic}
+            onToggle={(next) => patchField("isPublic", next)}
+            shareType="tasks"
+            id={id}
+          />
+          <button
+            type="button"
+            onClick={handleDelete}
+            title="Delete task"
+            className="rounded-md p-1.5 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            <Delete02Icon size={16} strokeWidth={1.8} />
+          </button>
+        </div>
       </div>
 
       <div className="mb-4 flex items-center gap-2 text-3xl font-bold">

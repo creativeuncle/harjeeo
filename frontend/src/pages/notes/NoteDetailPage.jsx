@@ -6,6 +6,7 @@ import RichTextEditor from "@/components/editor/RichTextEditor";
 import IconPicker from "@/components/ui/IconPicker";
 import DatePicker from "@/components/ui/DatePicker";
 import PlacePicker from "@/components/ui/PlacePicker";
+import SharePopover from "@/components/ui/SharePopover";
 
 function toDateInputValue(d) {
   if (!d) return null;
@@ -69,14 +70,22 @@ export default function NoteDetailPage() {
         <span className="text-xs text-(--color-text-muted)">
           {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
         </span>
-        <button
-          type="button"
-          onClick={handleDelete}
-          title="Delete note"
-          className="rounded-md p-1.5 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
-        >
-          <Delete02Icon size={16} strokeWidth={1.8} />
-        </button>
+        <div className="flex items-center gap-1">
+          <SharePopover
+            isPublic={note.isPublic}
+            onToggle={(next) => patchField("isPublic", next)}
+            shareType="notes"
+            id={id}
+          />
+          <button
+            type="button"
+            onClick={handleDelete}
+            title="Delete note"
+            className="rounded-md p-1.5 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            <Delete02Icon size={16} strokeWidth={1.8} />
+          </button>
+        </div>
       </div>
 
       <div className="mb-4">

@@ -15,6 +15,7 @@ import notificationRoutes from "./routes/notification.routes.js";
 import pushRoutes from "./routes/push.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import workspaceRoutes from "./routes/workspace.routes.js";
+import publicRoutes from "./routes/public.routes.js";
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/push", pushRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/workspaces", workspaceRoutes);
+app.use("/api/public", publicRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

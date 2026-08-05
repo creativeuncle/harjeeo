@@ -11,6 +11,7 @@ import IconPicker from "@/components/ui/IconPicker";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import SelectPicker from "@/components/ui/SelectPicker";
 import CommentSection from "@/components/ui/CommentSection";
+import SharePopover from "@/components/ui/SharePopover";
 import LeadPicker from "./LeadPicker";
 import TasksPicker from "./TasksPicker";
 
@@ -120,14 +121,22 @@ export default function ProjectDetailPage() {
         <span className="text-xs text-(--color-text-muted)">
           {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
         </span>
-        <button
-          type="button"
-          onClick={handleDelete}
-          title="Delete project"
-          className="rounded-md p-1.5 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
-        >
-          <Delete02Icon size={16} strokeWidth={1.8} />
-        </button>
+        <div className="flex items-center gap-1">
+          <SharePopover
+            isPublic={project.isPublic}
+            onToggle={(next) => patchField("isPublic", next)}
+            shareType="projects"
+            id={id}
+          />
+          <button
+            type="button"
+            onClick={handleDelete}
+            title="Delete project"
+            className="rounded-md p-1.5 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            <Delete02Icon size={16} strokeWidth={1.8} />
+          </button>
+        </div>
       </div>
 
       <div className="mb-4">
