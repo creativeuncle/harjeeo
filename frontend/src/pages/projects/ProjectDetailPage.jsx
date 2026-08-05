@@ -4,6 +4,7 @@ import { Delete02Icon, Flag01Icon, Calendar03Icon, UserIcon, Task01Icon } from "
 import { getProject, updateProject, deleteProject } from "@/lib/projects";
 import { listTasks, updateTask } from "@/lib/tasks";
 import { listStageOptions, createStageOption } from "@/lib/projectStageOptions";
+import { listMembers } from "@/lib/workspaces";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import IconPicker from "@/components/ui/IconPicker";
@@ -26,6 +27,7 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState(null);
   const [allTasks, setAllTasks] = useState([]);
   const [stageOptions, setStageOptions] = useState([]);
+  const [mentionItems, setMentionItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState("idle"); // idle | saving | saved
   const saveTimeout = useRef(null);
@@ -33,11 +35,19 @@ export default function ProjectDetailPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([getProject(id), listTasks(workspaceId), listStageOptions(workspaceId)])
-      .then(([p, tasks, stages]) => {
+    Promise.all([
+      getProject(id),
+      listTasks(workspaceId),
+      listStageOptions(workspaceId),
+      listMembers(workspaceId),
+    ])
+      .then(([p, tasks, stages, membersData]) => {
         setProject(p);
         setAllTasks(tasks);
         setStageOptions(stages);
+        setMentionItems(
+          membersData.members.map((m) => m.user).filter(Boolean).map((u) => ({ id: u._id, name: u.name }))
+        );
       })
       .finally(() => setLoading(false));
   }, [id, workspaceId]);
@@ -191,6 +201,7 @@ export default function ProjectDetailPage() {
           content={project.content ?? undefined}
           onChange={(json) => patchField("content", json)}
           placeholder="Write a description, notes, or plan for this project. Type '/' for commands…"
+          mentionItems={mentionItems}
         />
       </div>
 

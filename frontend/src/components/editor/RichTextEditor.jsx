@@ -1,3 +1,4 @@
+import { useMemo, useRef } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { baseExtensions } from "./extensions";
 import FormattingBubbleMenu from "./FormattingBubbleMenu";
@@ -8,9 +9,21 @@ export default function RichTextEditor({
   onChange,
   placeholder,
   editable = true,
+  mentionItems = [],
 }) {
+  const mentionItemsRef = useRef(mentionItems);
+  mentionItemsRef.current = mentionItems;
+
+  const getMentionItems = useMemo(
+    () => (query) =>
+      mentionItemsRef.current
+        .filter((m) => m.name.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 8),
+    []
+  );
+
   const editor = useEditor({
-    extensions: baseExtensions({ placeholder }),
+    extensions: baseExtensions({ placeholder, getMentionItems }),
     content,
     editable,
     onUpdate: ({ editor: e }) => {

@@ -15,10 +15,14 @@ import Audio from "./extensions/Audio";
 import Pdf from "./extensions/Pdf";
 import Embed from "./extensions/Embed";
 import SlashCommand from "./extensions/SlashCommand";
+import { createMentionExtension } from "./extensions/MentionExtension";
 
 const lowlight = createLowlight();
 
-export function baseExtensions({ placeholder = "Type '/' for commands…" } = {}) {
+export function baseExtensions({
+  placeholder = "Type '/' for commands…",
+  getMentionItems = () => [],
+} = {}) {
   return [
     StarterKit.configure({
       heading: { levels: [1, 2, 3, 4, 5, 6] },
@@ -41,5 +45,6 @@ export function baseExtensions({ placeholder = "Type '/' for commands…" } = {}
     Embed,
     Placeholder.configure({ placeholder }),
     SlashCommand,
+    createMentionExtension(getMentionItems),
   ];
 }

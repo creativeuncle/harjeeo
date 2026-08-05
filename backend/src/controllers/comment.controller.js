@@ -41,7 +41,7 @@ export const listComments = asyncHandler(async (req, res) => {
 });
 
 export const createComment = asyncHandler(async (req, res) => {
-  const { targetType, targetId, body } = req.body;
+  const { targetType, targetId, body, mentions } = req.body;
   if (!body || !body.trim()) {
     res.status(400);
     throw new Error("Comment body is required");
@@ -63,6 +63,8 @@ export const createComment = asyncHandler(async (req, res) => {
   await comment.populate("author", "name avatarUrl");
   res.status(201).json({ comment });
 
+  const link = targetType === "project" ? `/projects/${target._id}` : `/tasks/${target._id}`;
+
   try {
     const project = await resolveProjectLeads(targetType, target);
     if (project?.leads?.length) {
@@ -73,11 +75,27 @@ export const createComment = asyncHandler(async (req, res) => {
         type: "comment",
         title: `${req.user.name} commented`,
         body: comment.body,
-        link: targetType === "project" ? `/projects/${target._id}` : `/tasks/${target._id}`,
+        link,
       });
     }
   } catch (err) {
     console.error("Failed to send comment notification:", err);
+  }
+
+  if (Array.isArray(mentions) && mentions.length) {
+    try {
+      await notify({
+        recipientIds: mentions,
+        actorId: req.user._id,
+        workspace: target.workspace,
+        type: "mention",
+        title: `${req.user.name} mentioned you in a comment`,
+        body: comment.body,
+        link,
+      });
+    } catch (err) {
+      console.error("Failed to send mention notification:", err);
+    }
   }
 });
 

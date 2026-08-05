@@ -7,6 +7,8 @@ import {
   ArrowMoveUpRightIcon,
   UserIcon,
   UserAdd01Icon,
+  AlarmClockIcon,
+  AtIcon,
 } from "hugeicons-react";
 import {
   listNotifications,
@@ -28,6 +30,8 @@ const TYPE_ICON = {
   task_moved: ArrowMoveUpRightIcon,
   lead_assigned: UserIcon,
   workspace_invite: UserAdd01Icon,
+  due_reminder: AlarmClockIcon,
+  mention: AtIcon,
 };
 
 function formatTimestamp(iso) {

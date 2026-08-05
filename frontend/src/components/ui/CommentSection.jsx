@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Attachment02Icon, AtIcon, ArrowUp01Icon, Delete02Icon } from "hugeicons-react";
 import { listComments, createComment, deleteComment } from "@/lib/comments";
+import { listMembers } from "@/lib/workspaces";
 import { useAuthStore } from "@/store/authStore";
+import { useWorkspaceStore } from "@/store/workspaceStore";
 import Avatar from "./Avatar";
 
 function formatTimestamp(iso) {
@@ -13,12 +15,26 @@ function formatTimestamp(iso) {
   return `${date.toLocaleDateString(undefined, { month: "short", day: "numeric" })} · ${time}`;
 }
 
+// Finds an in-progress "@partial" token ending at the cursor, if any.
+function findMentionTrigger(text, cursor) {
+  const upToCursor = text.slice(0, cursor);
+  const at = upToCursor.lastIndexOf("@");
+  if (at === -1) return null;
+  const between = upToCursor.slice(at + 1);
+  if (/\s/.test(between)) return null;
+  return { start: at, query: between };
+}
+
 export default function CommentSection({ targetType, targetId }) {
   const user = useAuthStore((s) => s.user);
+  const workspaceId = useWorkspaceStore((s) => s.currentId);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [value, setValue] = useState("");
   const [posting, setPosting] = useState(false);
+  const [members, setMembers] = useState(null);
+  const [mentioned, setMentioned] = useState([]); // [{ id, name }]
+  const [mentionTrigger, setMentionTrigger] = useState(null); // { start, query }
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -29,14 +45,46 @@ export default function CommentSection({ targetType, targetId }) {
       .finally(() => setLoading(false));
   }, [targetType, targetId]);
 
+  function ensureMembersLoaded() {
+    if (members || !workspaceId) return;
+    listMembers(workspaceId).then((data) =>
+      setMembers(data.members.map((m) => m.user).filter(Boolean))
+    );
+  }
+
+  function handleChange(e) {
+    const text = e.target.value;
+    setValue(text);
+    const trigger = findMentionTrigger(text, e.target.selectionStart);
+    setMentionTrigger(trigger);
+    if (trigger) ensureMembersLoaded();
+  }
+
+  function handleSelectMention(member) {
+    if (!mentionTrigger) return;
+    const before = value.slice(0, mentionTrigger.start);
+    const after = value.slice(mentionTrigger.start + 1 + mentionTrigger.query.length);
+    const text = `${before}@${member.name} ${after}`;
+    setValue(text);
+    setMentioned((prev) => [...prev, { id: member._id, name: member.name }]);
+    setMentionTrigger(null);
+    inputRef.current?.focus();
+  }
+
+  const filteredMembers = (members ?? []).filter((m) =>
+    m.name.toLowerCase().includes((mentionTrigger?.query ?? "").toLowerCase())
+  );
+
   async function handleSubmit() {
     const body = value.trim();
     if (!body || posting) return;
     setPosting(true);
     try {
-      const comment = await createComment(targetType, targetId, body);
+      const mentionIds = mentioned.filter((m) => body.includes(`@${m.name}`)).map((m) => m.id);
+      const comment = await createComment(targetType, targetId, body, mentionIds);
       setComments((prev) => [...prev, comment]);
       setValue("");
+      setMentioned([]);
       inputRef.current?.focus();
     } finally {
       setPosting(false);
@@ -94,7 +142,7 @@ export default function CommentSection({ targetType, targetId }) {
         </div>
       )}
 
-      <div className="mt-3 flex items-center gap-2.5">
+      <div className="relative mt-3 flex items-center gap-2.5">
         {user?.avatarUrl ? (
           <img
             src={user.avatarUrl}
@@ -108,12 +156,13 @@ export default function CommentSection({ targetType, targetId }) {
           <input
             ref={inputRef}
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={handleChange}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
+              if (e.key === "Enter" && !e.shiftKey && !mentionTrigger) {
                 e.preventDefault();
                 handleSubmit();
               }
+              if (e.key === "Escape") setMentionTrigger(null);
             }}
             placeholder="Add a comment…"
             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-(--color-text-muted)"
@@ -128,6 +177,12 @@ export default function CommentSection({ targetType, targetId }) {
           <button
             type="button"
             title="Mention"
+            onClick={() => {
+              setValue((prev) => `${prev}@`);
+              setMentionTrigger({ start: value.length, query: "" });
+              ensureMembersLoaded();
+              inputRef.current?.focus();
+            }}
             className="shrink-0 text-(--color-text-muted) hover:text-(--color-text)"
           >
             <AtIcon size={16} strokeWidth={1.8} />
@@ -142,6 +197,25 @@ export default function CommentSection({ targetType, targetId }) {
             <ArrowUp01Icon size={14} strokeWidth={2} />
           </button>
         </div>
+
+        {mentionTrigger && (
+          <div className="absolute bottom-full left-9 z-30 mb-1 w-56 rounded-lg border border-(--color-border) bg-(--color-canvas) p-1 shadow-lg">
+            {filteredMembers.length === 0 && (
+              <div className="px-2 py-1.5 text-sm text-(--color-text-muted)">No matches</div>
+            )}
+            {filteredMembers.map((member) => (
+              <button
+                key={member._id}
+                type="button"
+                onClick={() => handleSelectMention(member)}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-black/5 dark:hover:bg-white/10"
+              >
+                <Avatar name={member.name} size={20} />
+                {member.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

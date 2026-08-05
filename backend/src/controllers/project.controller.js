@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import Project from "../models/Project.js";
 import { requireMembership } from "../utils/workspaceAuth.js";
 import { notify } from "../utils/notify.js";
+import { newlyMentionedIds } from "../utils/mentions.js";
 
 const ALLOWED_UPDATE_FIELDS = [
   "title",
@@ -57,6 +58,9 @@ export const updateProject = asyncHandler(async (req, res) => {
   for (const field of ALLOWED_UPDATE_FIELDS) {
     if (field in req.body) updates[field] = req.body[field];
   }
+  if ("endDate" in updates && String(updates.endDate) !== String(existing.endDate)) {
+    updates.dueReminderSentAt = null;
+  }
 
   const previousLeads = existing.leads.map(String);
 
@@ -80,6 +84,25 @@ export const updateProject = asyncHandler(async (req, res) => {
         });
       } catch (err) {
         console.error("Failed to send lead-assigned notification:", err);
+      }
+    }
+  }
+
+  if ("content" in updates) {
+    const newMentions = newlyMentionedIds(existing.content, updates.content);
+    if (newMentions.length) {
+      try {
+        await notify({
+          recipientIds: newMentions,
+          actorId: req.user._id,
+          workspace: project.workspace,
+          type: "mention",
+          title: `${req.user.name} mentioned you in "${project.title}"`,
+          body: "",
+          link: `/projects/${project._id}`,
+        });
+      } catch (err) {
+        console.error("Failed to send mention notification:", err);
       }
     }
   }

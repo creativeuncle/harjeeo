@@ -5,8 +5,8 @@ export async function listComments(targetType, targetId) {
   return data.comments;
 }
 
-export async function createComment(targetType, targetId, body) {
-  const { data } = await api.post("/comments", { targetType, targetId, body });
+export async function createComment(targetType, targetId, body, mentions = []) {
+  const { data } = await api.post("/comments", { targetType, targetId, body, mentions });
   return data.comment;
 }
 

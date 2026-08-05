@@ -19,6 +19,7 @@ import {
   deleteTaskProperty,
 } from "@/lib/tasks";
 import { listProjects } from "@/lib/projects";
+import { listMembers } from "@/lib/workspaces";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import { PROPERTY_TYPE_META } from "@/lib/propertyTypes";
 import RichTextEditor from "@/components/editor/RichTextEditor";
@@ -43,6 +44,7 @@ export default function TaskDetailPage() {
   const [properties, setProperties] = useState([]);
   const [projects, setProjects] = useState([]);
   const [allTasks, setAllTasks] = useState([]);
+  const [mentionItems, setMentionItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState("idle");
   const saveTimeout = useRef(null);
@@ -56,12 +58,16 @@ export default function TaskDetailPage() {
       listTaskProperties(workspaceId),
       listProjects(workspaceId),
       listTasks(workspaceId),
+      listMembers(workspaceId),
     ])
-      .then(([t, props, projs, tasks]) => {
+      .then(([t, props, projs, tasks, membersData]) => {
         setTask(t);
         setProperties(props);
         setProjects(projs);
         setAllTasks(tasks);
+        setMentionItems(
+          membersData.members.map((m) => m.user).filter(Boolean).map((u) => ({ id: u._id, name: u.name }))
+        );
       })
       .finally(() => setLoading(false));
   }, [id, workspaceId]);
@@ -283,6 +289,7 @@ export default function TaskDetailPage() {
           content={task.content ?? undefined}
           onChange={(json) => patchField("content", json)}
           placeholder="Add a description. Type '/' for commands…"
+          mentionItems={mentionItems}
         />
       </div>
 

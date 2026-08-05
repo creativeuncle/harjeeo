@@ -3,6 +3,7 @@ import Task from "../models/Task.js";
 import Project from "../models/Project.js";
 import { requireMembership } from "../utils/workspaceAuth.js";
 import { notify } from "../utils/notify.js";
+import { newlyMentionedIds } from "../utils/mentions.js";
 
 const STATUS_LABELS = {
   not_started: "Not started",
@@ -58,10 +59,16 @@ export const updateTask = asyncHandler(async (req, res) => {
   }
   await requireMembership(res, task.workspace, req.user._id);
 
+  const previousContent = task.content;
+
   if ("title" in req.body) task.title = req.body.title;
   if ("content" in req.body) task.content = req.body.content;
   if ("projectId" in req.body) task.projectId = req.body.projectId || null;
-  if ("dueDate" in req.body) task.dueDate = req.body.dueDate || null;
+  if ("dueDate" in req.body) {
+    const nextDueDate = req.body.dueDate || null;
+    if (String(nextDueDate) !== String(task.dueDate)) task.dueReminderSentAt = null;
+    task.dueDate = nextDueDate;
+  }
   if ("dependsOn" in req.body) task.dependsOn = req.body.dependsOn || [];
   if ("properties" in req.body) {
     for (const [key, value] of Object.entries(req.body.properties)) {
@@ -70,6 +77,25 @@ export const updateTask = asyncHandler(async (req, res) => {
   }
   await task.save();
   res.json({ task });
+
+  if ("content" in req.body) {
+    const newMentions = newlyMentionedIds(previousContent, task.content);
+    if (newMentions.length) {
+      try {
+        await notify({
+          recipientIds: newMentions,
+          actorId: req.user._id,
+          workspace: task.workspace,
+          type: "mention",
+          title: `${req.user.name} mentioned you in "${task.title}"`,
+          body: "",
+          link: `/tasks/${task._id}`,
+        });
+      } catch (err) {
+        console.error("Failed to send mention notification:", err);
+      }
+    }
+  }
 });
 
 export const moveTask = asyncHandler(async (req, res) => {

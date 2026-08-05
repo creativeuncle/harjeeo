@@ -245,6 +245,16 @@
   font-weight: 500;
 }
 
+/* Mentions */
+.harjeeo-mention {
+  padding: 0.1em 0.35em;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  color: var(--color-accent);
+  font-weight: 500;
+  box-decoration-break: clone;
+}
+
 /* Media blocks */
 .harjeeo-media {
   border-radius: 8px;
