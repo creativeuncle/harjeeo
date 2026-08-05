@@ -59,7 +59,7 @@ export default function PlacePicker({ value, onChange }) {
         ref={triggerRef}
         type="button"
         onClick={handleOpen}
-        className="flex max-w-full items-center rounded-md px-2 py-1 text-left text-sm hover:bg-black/5 dark:hover:bg-white/10"
+        className="flex min-w-0 max-w-full items-center rounded-md px-2 py-1 text-left text-sm hover:bg-black/5 dark:hover:bg-white/10"
       >
         <span className={value ? "truncate" : "text-(--color-text-muted)"}>
           {value || "Empty"}

@@ -104,7 +104,10 @@ export default function NotesListPage() {
                     />
                   </td>
 
-                  <td className="py-2.5 pr-4" onClick={(e) => e.stopPropagation()}>
+                  <td
+                    className="max-w-[260px] py-2.5 pr-4"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <PlacePicker
                       value={note.place}
                       onChange={(place) => patchNote(note._id, { place })}

@@ -115,7 +115,9 @@ export default function NoteDetailPage() {
             <Location01Icon size={18} strokeWidth={1.8} />
             Place
           </span>
-          <PlacePicker value={note.place} onChange={(place) => patchField("place", place)} />
+          <div className="min-w-0 flex-1">
+            <PlacePicker value={note.place} onChange={(place) => patchField("place", place)} />
+          </div>
         </div>
       </div>
 
