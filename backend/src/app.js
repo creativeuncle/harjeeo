@@ -16,6 +16,7 @@ import pushRoutes from "./routes/push.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import workspaceRoutes from "./routes/workspace.routes.js";
 import publicRoutes from "./routes/public.routes.js";
+import chatRoutes from "./routes/chat.routes.js";
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use("/api/push", pushRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/workspaces", workspaceRoutes);
 app.use("/api/public", publicRoutes);
+app.use("/api/chat", chatRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

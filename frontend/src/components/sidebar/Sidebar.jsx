@@ -12,6 +12,7 @@ import {
   Logout01Icon,
 } from "hugeicons-react";
 import { api } from "@/lib/api";
+import { disconnectSocket } from "@/lib/socket";
 import { createNote } from "@/lib/notes";
 import { useAuthStore } from "@/store/authStore";
 import { useWorkspaceStore } from "@/store/workspaceStore";
@@ -63,6 +64,7 @@ export default function Sidebar() {
     try {
       await api.post("/auth/logout");
     } finally {
+      disconnectSocket();
       clearSession();
       navigate("/login", { replace: true });
     }
