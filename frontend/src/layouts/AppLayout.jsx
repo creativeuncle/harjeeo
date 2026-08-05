@@ -6,13 +6,17 @@ import PushPermissionBanner from "@/components/notifications/PushPermissionBanne
 export default function AppLayout() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-(--color-canvas) text-(--color-text)">
-      <Sidebar />
+      <div className="print:hidden">
+        <Sidebar />
+      </div>
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center justify-end border-b border-(--color-border) px-4 py-2">
+        <div className="flex items-center justify-end border-b border-(--color-border) px-4 py-2 print:hidden">
           <NotificationBell />
         </div>
-        <PushPermissionBanner />
-        <main className="flex-1 overflow-y-auto">
+        <div className="print:hidden">
+          <PushPermissionBanner />
+        </div>
+        <main className="flex-1 overflow-y-auto print:overflow-visible">
           <Outlet />
         </main>
       </div>

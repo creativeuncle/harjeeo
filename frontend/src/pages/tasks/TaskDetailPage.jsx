@@ -25,6 +25,7 @@ import { PROPERTY_TYPE_META } from "@/lib/propertyTypes";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import CommentSection from "@/components/ui/CommentSection";
 import SharePopover from "@/components/ui/SharePopover";
+import ExportMenu from "@/components/ui/ExportMenu";
 import DatePicker from "@/components/ui/DatePicker";
 import TasksPicker from "@/pages/projects/TasksPicker";
 import AddPropertyMenu from "./AddPropertyMenu";
@@ -185,7 +186,8 @@ export default function TaskDetailPage() {
         <span className="text-xs text-(--color-text-muted)">
           {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 print:hidden">
+          <ExportMenu title={task.title} content={task.content} />
           <SharePopover
             isPublic={task.isPublic}
             onToggle={(next) => patchField("isPublic", next)}
@@ -302,7 +304,7 @@ export default function TaskDetailPage() {
         />
       </div>
 
-      <div className="mt-8 border-t border-(--color-border) pt-6">
+      <div className="mt-8 border-t border-(--color-border) pt-6 print:hidden">
         <CommentSection targetType="task" targetId={id} />
       </div>
     </div>

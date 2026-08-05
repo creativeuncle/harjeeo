@@ -7,6 +7,7 @@ import IconPicker from "@/components/ui/IconPicker";
 import DatePicker from "@/components/ui/DatePicker";
 import PlacePicker from "@/components/ui/PlacePicker";
 import SharePopover from "@/components/ui/SharePopover";
+import ExportMenu from "@/components/ui/ExportMenu";
 
 function toDateInputValue(d) {
   if (!d) return null;
@@ -70,7 +71,8 @@ export default function NoteDetailPage() {
         <span className="text-xs text-(--color-text-muted)">
           {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 print:hidden">
+          <ExportMenu title={note.title} content={note.content} />
           <SharePopover
             isPublic={note.isPublic}
             onToggle={(next) => patchField("isPublic", next)}
