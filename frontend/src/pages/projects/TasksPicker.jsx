@@ -12,11 +12,11 @@ export default function TasksPicker({ allTasks, selectedTasks, onToggle }) {
   );
 
   return (
-    <div className="relative min-w-0 flex-1">
+    <div className="relative min-w-0">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex min-h-[28px] w-full flex-wrap items-center gap-1.5 rounded-md px-2 py-1 text-left hover:bg-black/5 dark:hover:bg-white/10"
+        className="inline-flex min-h-[28px] max-w-full flex-wrap items-center gap-1.5 rounded-md px-2 py-1 text-left hover:bg-black/5 dark:hover:bg-white/10"
       >
         {selectedTasks.length === 0 && (
           <span className="text-sm text-(--color-text-muted)">Empty</span>
