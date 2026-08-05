@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Delete02Icon, Calendar03Icon, Location01Icon, Gps01Icon } from "hugeicons-react";
+import { Delete02Icon, Calendar03Icon, Location01Icon } from "hugeicons-react";
 import { getNote, updateNote, deleteNote } from "@/lib/notes";
-import { detectPlace } from "@/lib/geolocation";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import IconPicker from "@/components/ui/IconPicker";
 import DatePicker from "@/components/ui/DatePicker";
+import PlacePicker from "@/components/ui/PlacePicker";
 
 function toDateInputValue(d) {
   if (!d) return null;
@@ -19,8 +19,6 @@ export default function NoteDetailPage() {
   const [note, setNote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState("idle");
-  const [locating, setLocating] = useState(false);
-  const [locateError, setLocateError] = useState("");
   const saveTimeout = useRef(null);
   const pendingUpdates = useRef({});
 
@@ -49,19 +47,6 @@ export default function NoteDetailPage() {
   function patchField(field, value) {
     setNote((prev) => ({ ...prev, [field]: value }));
     persist({ [field]: value });
-  }
-
-  async function handleDetectPlace() {
-    setLocating(true);
-    setLocateError("");
-    try {
-      const place = await detectPlace();
-      patchField("place", place);
-    } catch (err) {
-      setLocateError(err.message || "Couldn't detect your location");
-    } finally {
-      setLocating(false);
-    }
   }
 
   async function handleDelete() {
@@ -130,22 +115,7 @@ export default function NoteDetailPage() {
             <Location01Icon size={18} strokeWidth={1.8} />
             Place
           </span>
-          <input
-            value={note.place}
-            onChange={(e) => patchField("place", e.target.value)}
-            placeholder="Empty"
-            className="rounded-md border border-transparent bg-transparent px-2 py-1 text-sm outline-none hover:border-(--color-border) focus:border-(--color-border) placeholder:text-(--color-text-muted)"
-          />
-          <button
-            type="button"
-            onClick={handleDetectPlace}
-            disabled={locating}
-            title="Use current location"
-            className="rounded-md p-1.5 text-(--color-text-muted) hover:bg-black/5 disabled:opacity-60 dark:hover:bg-white/10"
-          >
-            <Gps01Icon size={16} strokeWidth={1.8} className={locating ? "animate-pulse" : ""} />
-          </button>
-          {locateError && <span className="text-xs text-red-500">{locateError}</span>}
+          <PlacePicker value={note.place} onChange={(place) => patchField("place", place)} />
         </div>
       </div>
 

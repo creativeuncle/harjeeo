@@ -9,6 +9,7 @@ import {
 } from "hugeicons-react";
 import { listNotes, createNote, updateNote } from "@/lib/notes";
 import DatePicker from "@/components/ui/DatePicker";
+import PlacePicker from "@/components/ui/PlacePicker";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 
 function toDateInputValue(d) {
@@ -104,11 +105,9 @@ export default function NotesListPage() {
                   </td>
 
                   <td className="py-2.5 pr-4" onClick={(e) => e.stopPropagation()}>
-                    <input
-                      value={note.place ?? ""}
-                      placeholder="Empty"
-                      onChange={(e) => patchNote(note._id, { place: e.target.value })}
-                      className="w-40 rounded border border-transparent bg-transparent px-1 py-0.5 outline-none hover:border-(--color-border) focus:border-(--color-border) placeholder:text-(--color-text-muted)"
+                    <PlacePicker
+                      value={note.place}
+                      onChange={(place) => patchNote(note._id, { place })}
                     />
                   </td>
                 </tr>
