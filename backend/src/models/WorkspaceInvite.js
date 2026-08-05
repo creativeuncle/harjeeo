@@ -8,7 +8,7 @@ const workspaceInviteSchema = new mongoose.Schema(
     role: { type: String, enum: WORKSPACE_ROLES, default: "viewer" },
     tokenHash: { type: String, required: true, select: false },
     invitedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    status: { type: String, enum: ["pending", "accepted"], default: "pending" },
+    status: { type: String, enum: ["pending", "accepted", "declined"], default: "pending" },
     expiresAt: { type: Date, required: true },
   },
   { timestamps: true }

@@ -32,7 +32,7 @@ async function pushToUser(userId, payload) {
 }
 
 // recipientIds: single id or array. actorId is excluded from recipients.
-export async function notify({ recipientIds, actorId, workspace, type, title, body, link }) {
+export async function notify({ recipientIds, actorId, workspace, type, title, body, link, meta }) {
   const ids = (Array.isArray(recipientIds) ? recipientIds : [recipientIds])
     .filter(Boolean)
     .map(String);
@@ -49,6 +49,7 @@ export async function notify({ recipientIds, actorId, workspace, type, title, bo
         title,
         body,
         link,
+        meta: meta ?? null,
       });
       await pushToUser(recipientId, { title, body, link });
     })

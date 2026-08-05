@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { Notification03Icon, BubbleChatIcon, ArrowMoveUpRightIcon, UserIcon } from "hugeicons-react";
+import {
+  Notification03Icon,
+  BubbleChatIcon,
+  ArrowMoveUpRightIcon,
+  UserIcon,
+  UserAdd01Icon,
+} from "hugeicons-react";
 import {
   listNotifications,
   markNotificationRead,
@@ -13,12 +19,15 @@ import {
   subscribeToPush,
   markPushPromptSeen,
 } from "@/lib/push";
+import { acceptInviteById, declineInviteById, listWorkspaces } from "@/lib/workspaces";
+import { useWorkspaceStore } from "@/store/workspaceStore";
 import Avatar from "@/components/ui/Avatar";
 
 const TYPE_ICON = {
   comment: BubbleChatIcon,
   task_moved: ArrowMoveUpRightIcon,
   lead_assigned: UserIcon,
+  workspace_invite: UserAdd01Icon,
 };
 
 function formatTimestamp(iso) {
@@ -36,10 +45,13 @@ function formatTimestamp(iso) {
 
 export default function NotificationBell() {
   const navigate = useNavigate();
+  const setWorkspaces = useWorkspaceStore((s) => s.setWorkspaces);
+  const setCurrentId = useWorkspaceStore((s) => s.setCurrentId);
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [pushEnabled, setPushEnabled] = useState(null);
   const [position, setPosition] = useState(null);
+  const [inviteStatus, setInviteStatus] = useState({}); // inviteId -> "accepted" | "declined" | "working"
   const triggerRef = useRef(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -87,6 +99,39 @@ export default function NotificationBell() {
   async function handleMarkAllRead() {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     markAllNotificationsRead().catch(() => {});
+  }
+
+  function markNotificationReadLocally(id) {
+    setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, read: true } : n)));
+    markNotificationRead(id).catch(() => {});
+  }
+
+  async function handleAcceptInvite(notification) {
+    const inviteId = notification.meta?.inviteId;
+    if (!inviteId) return;
+    setInviteStatus((prev) => ({ ...prev, [inviteId]: "working" }));
+    try {
+      const workspace = await acceptInviteById(inviteId);
+      setWorkspaces(await listWorkspaces());
+      setCurrentId(workspace._id);
+      setInviteStatus((prev) => ({ ...prev, [inviteId]: "accepted" }));
+      markNotificationReadLocally(notification._id);
+    } catch {
+      setInviteStatus((prev) => ({ ...prev, [inviteId]: undefined }));
+    }
+  }
+
+  async function handleDeclineInvite(notification) {
+    const inviteId = notification.meta?.inviteId;
+    if (!inviteId) return;
+    setInviteStatus((prev) => ({ ...prev, [inviteId]: "working" }));
+    try {
+      await declineInviteById(inviteId);
+      setInviteStatus((prev) => ({ ...prev, [inviteId]: "declined" }));
+      markNotificationReadLocally(notification._id);
+    } catch {
+      setInviteStatus((prev) => ({ ...prev, [inviteId]: undefined }));
+    }
   }
 
   return (
@@ -144,6 +189,78 @@ export default function NotificationBell() {
                 )}
                 {notifications.map((notification) => {
                   const Icon = TYPE_ICON[notification.type] ?? Notification03Icon;
+                  const isInvite = notification.type === "workspace_invite";
+                  const inviteId = notification.meta?.inviteId;
+                  const status = isInvite ? inviteStatus[inviteId] : undefined;
+
+                  const avatar = notification.actor ? (
+                    <Avatar name={notification.actor.name} size={26} />
+                  ) : (
+                    <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-black/5 dark:bg-white/10">
+                      <Icon size={14} strokeWidth={1.8} />
+                    </span>
+                  );
+
+                  const body = (
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm">{notification.title}</div>
+                      {notification.body && (
+                        <div className="truncate text-xs text-(--color-text-muted)">
+                          {notification.body}
+                        </div>
+                      )}
+                      <div className="mt-0.5 text-xs text-(--color-text-muted)">
+                        {formatTimestamp(notification.createdAt)}
+                      </div>
+                    </div>
+                  );
+
+                  if (isInvite) {
+                    return (
+                      <div
+                        key={notification._id}
+                        className={`flex items-start gap-2.5 px-3 py-2.5 ${
+                          notification.read ? "" : "bg-(--color-accent)/5"
+                        }`}
+                      >
+                        {avatar}
+                        <div className="min-w-0 flex-1">
+                          {body}
+                          {status === "accepted" && (
+                            <div className="mt-1.5 text-xs font-medium text-(--color-accent)">
+                              Joined
+                            </div>
+                          )}
+                          {status === "declined" && (
+                            <div className="mt-1.5 text-xs text-(--color-text-muted)">
+                              Declined
+                            </div>
+                          )}
+                          {(!status || status === "working") && (
+                            <div className="mt-1.5 flex items-center gap-2">
+                              <button
+                                type="button"
+                                disabled={status === "working"}
+                                onClick={() => handleAcceptInvite(notification)}
+                                className="rounded-md bg-(--color-accent) px-2.5 py-1 text-xs font-medium text-white disabled:opacity-60"
+                              >
+                                Accept
+                              </button>
+                              <button
+                                type="button"
+                                disabled={status === "working"}
+                                onClick={() => handleDeclineInvite(notification)}
+                                className="rounded-md border border-(--color-border) px-2.5 py-1 text-xs text-(--color-text-muted) hover:text-(--color-text) disabled:opacity-60"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+
                   return (
                     <button
                       key={notification._id}
@@ -153,24 +270,8 @@ export default function NotificationBell() {
                         notification.read ? "" : "bg-(--color-accent)/5"
                       }`}
                     >
-                      {notification.actor ? (
-                        <Avatar name={notification.actor.name} size={26} />
-                      ) : (
-                        <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-black/5 dark:bg-white/10">
-                          <Icon size={14} strokeWidth={1.8} />
-                        </span>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm">{notification.title}</div>
-                        {notification.body && (
-                          <div className="truncate text-xs text-(--color-text-muted)">
-                            {notification.body}
-                          </div>
-                        )}
-                        <div className="mt-0.5 text-xs text-(--color-text-muted)">
-                          {formatTimestamp(notification.createdAt)}
-                        </div>
-                      </div>
+                      {avatar}
+                      {body}
                       {!notification.read && (
                         <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-(--color-accent)" />
                       )}

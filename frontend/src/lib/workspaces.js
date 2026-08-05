@@ -61,3 +61,12 @@ export async function acceptInvite(token) {
   const { data } = await api.post("/workspaces/invites/accept", { token });
   return data.workspace;
 }
+
+export async function acceptInviteById(inviteId) {
+  const { data } = await api.post(`/workspaces/invites/${inviteId}/accept`);
+  return data.workspace;
+}
+
+export async function declineInviteById(inviteId) {
+  await api.post(`/workspaces/invites/${inviteId}/decline`);
+}

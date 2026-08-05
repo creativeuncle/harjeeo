@@ -5,6 +5,7 @@ import WorkspaceInvite from "../models/WorkspaceInvite.js";
 import User from "../models/User.js";
 import { generateRawToken, hashToken } from "../utils/hashToken.js";
 import { sendWorkspaceInviteEmail } from "../utils/email.js";
+import { notify } from "../utils/notify.js";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const MANAGE_ROLES = ["owner", "admin"];
@@ -145,6 +146,23 @@ export const inviteMember = asyncHandler(async (req, res) => {
     console.error("Failed to send workspace invite email:", err.message);
   }
 
+  if (existingUser) {
+    try {
+      await notify({
+        recipientIds: existingUser._id,
+        actorId: req.user._id,
+        workspace: workspace._id,
+        type: "workspace_invite",
+        title: `${req.user.name} invited you to ${workspace.name}`,
+        body: `Role: ${safeRole}`,
+        link: `/workspace/${workspace._id}/settings`,
+        meta: { inviteId: invite._id },
+      });
+    } catch (err) {
+      console.error("Failed to send workspace invite notification:", err);
+    }
+  }
+
   res.status(201).json({ invite });
 });
 
@@ -194,6 +212,57 @@ export const acceptInvite = asyncHandler(async (req, res) => {
 
   const workspace = await Workspace.findById(invite.workspace);
   res.json({ workspace });
+});
+
+// Session-based accept/decline for invites surfaced via in-app notification
+// (no emailed token needed — the invite's email must match the logged-in user).
+export const acceptInviteById = asyncHandler(async (req, res) => {
+  const invite = await WorkspaceInvite.findOne({
+    _id: req.params.inviteId,
+    status: "pending",
+    expiresAt: { $gt: new Date() },
+  });
+  if (!invite) {
+    res.status(400);
+    throw new Error("This invite is invalid or has expired");
+  }
+  if (invite.email !== req.user.email.toLowerCase()) {
+    res.status(403);
+    throw new Error("This invite was sent to a different email address");
+  }
+
+  const existing = await getMembership(invite.workspace, req.user._id);
+  if (!existing) {
+    await WorkspaceMember.create({
+      workspace: invite.workspace,
+      user: req.user._id,
+      role: invite.role,
+    });
+  }
+  invite.status = "accepted";
+  await invite.save();
+
+  const workspace = await Workspace.findById(invite.workspace);
+  res.json({ workspace });
+});
+
+export const declineInviteById = asyncHandler(async (req, res) => {
+  const invite = await WorkspaceInvite.findOne({
+    _id: req.params.inviteId,
+    status: "pending",
+  });
+  if (!invite) {
+    res.status(400);
+    throw new Error("This invite is invalid or has expired");
+  }
+  if (invite.email !== req.user.email.toLowerCase()) {
+    res.status(403);
+    throw new Error("This invite was sent to a different email address");
+  }
+
+  invite.status = "declined";
+  await invite.save();
+  res.json({ ok: true });
 });
 
 export const updateMemberRole = asyncHandler(async (req, res) => {

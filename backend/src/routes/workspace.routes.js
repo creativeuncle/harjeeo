@@ -9,6 +9,8 @@ import {
   inviteMember,
   revokeInvite,
   acceptInvite,
+  acceptInviteById,
+  declineInviteById,
   updateMemberRole,
   removeMember,
 } from "../controllers/workspace.controller.js";
@@ -26,6 +28,8 @@ router.use(protect);
 router.get("/", listWorkspaces);
 router.post("/", createWorkspace);
 router.post("/invites/accept", acceptInvite);
+router.post("/invites/:inviteId/accept", acceptInviteById);
+router.post("/invites/:inviteId/decline", declineInviteById);
 
 router.get("/:id", getWorkspace);
 router.patch("/:id", updateWorkspace);
