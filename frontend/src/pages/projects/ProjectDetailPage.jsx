@@ -10,7 +10,7 @@ import IconPicker from "@/components/ui/IconPicker";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import SelectPicker from "@/components/ui/SelectPicker";
 import CommentSection from "@/components/ui/CommentSection";
-import PersonPicker from "./PersonPicker";
+import LeadPicker from "./LeadPicker";
 import TasksPicker from "./TasksPicker";
 
 function toDateInputValue(d) {
@@ -77,6 +77,11 @@ export default function ProjectDetailPage() {
   function patchFields(updates) {
     setProject((prev) => ({ ...prev, ...updates }));
     persist(updates);
+  }
+
+  function handleLeadsChange(people) {
+    setProject((prev) => ({ ...prev, leads: people }));
+    persist({ leads: people.map((p) => p._id) });
   }
 
   async function handleDelete() {
@@ -165,10 +170,7 @@ export default function ProjectDetailPage() {
             <UserIcon size={18} strokeWidth={1.8} />
             Lead
           </span>
-          <PersonPicker
-            value={project.lead || null}
-            onChange={(name) => patchField("lead", name ?? "")}
-          />
+          <LeadPicker value={project.leads ?? []} onChange={handleLeadsChange} />
         </div>
 
         <div className="flex items-start gap-3">

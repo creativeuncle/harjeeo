@@ -59,3 +59,33 @@ export async function migrateWorkspaces() {
     }
   }
 }
+
+// Older projects stored Lead as a plain name string. Converts each to the
+// new `leads` array by matching the name against the project's workspace
+// members; drops the legacy field either way. Safe to run on every startup.
+export async function migrateLegacyProjectLeads() {
+  const legacyDocs = await Project.collection
+    .find({ lead: { $exists: true } })
+    .toArray();
+
+  for (const doc of legacyDocs) {
+    // eslint-disable-next-line no-await-in-loop
+    const members = await WorkspaceMember.find({ workspace: doc.workspace }).populate(
+      "user",
+      "name"
+    );
+    const match = members.find((m) => m.user?.name === doc.lead);
+    // eslint-disable-next-line no-await-in-loop
+    await Project.collection.updateOne(
+      { _id: doc._id },
+      {
+        $set: { leads: match ? [match.user._id] : [] },
+        $unset: { lead: "" },
+      }
+    );
+  }
+
+  if (legacyDocs.length > 0) {
+    console.log(`Migration: converted lead field on ${legacyDocs.length} projects to leads[]`);
+  }
+}

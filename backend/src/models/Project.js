@@ -7,7 +7,7 @@ const projectSchema = new mongoose.Schema(
     stage: { type: String, default: "not_started" },
     startDate: { type: Date, default: null },
     endDate: { type: Date, default: null },
-    lead: { type: String, default: "" },
+    leads: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     content: { type: mongoose.Schema.Types.Mixed, default: null },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     workspace: { type: mongoose.Schema.Types.ObjectId, ref: "Workspace", required: true },

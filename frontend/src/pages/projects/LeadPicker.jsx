@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { Cancel01Icon, UserAdd01Icon } from "hugeicons-react";
-import { useAuthStore } from "@/store/authStore";
+import { CheckmarkCircle02Icon, UserAdd01Icon } from "hugeicons-react";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import { listMembers } from "@/lib/workspaces";
 import Avatar from "@/components/ui/Avatar";
+import AvatarStack from "@/components/ui/AvatarStack";
 
-export default function PersonPicker({ value, onChange }) {
+export default function LeadPicker({ value, onChange }) {
   const navigate = useNavigate();
-  const user = useAuthStore((s) => s.user);
   const currentWorkspaceId = useWorkspaceStore((s) => s.currentId);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -20,19 +19,26 @@ export default function PersonPicker({ value, onChange }) {
   useEffect(() => {
     if (!open || !currentWorkspaceId || members) return;
     listMembers(currentWorkspaceId).then((data) =>
-      setMembers(data.members.map((m) => m.user?.name).filter(Boolean))
+      setMembers(data.members.map((m) => m.user).filter(Boolean))
     );
   }, [open, currentWorkspaceId, members]);
 
-  const people = members ?? (user ? [user.name] : []);
-  const filtered = people.filter((name) =>
-    name.toLowerCase().includes(query.toLowerCase())
-  );
+  const people = members ?? [];
+  const filtered = people.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
+  const selectedIds = new Set(value.map((p) => p._id));
 
   function handleOpen() {
     const rect = triggerRef.current.getBoundingClientRect();
     setPosition({ top: rect.bottom + 4, left: rect.left });
     setOpen(true);
+  }
+
+  function toggle(person) {
+    if (selectedIds.has(person._id)) {
+      onChange(value.filter((p) => p._id !== person._id));
+    } else {
+      onChange([...value, person]);
+    }
   }
 
   return (
@@ -41,15 +47,12 @@ export default function PersonPicker({ value, onChange }) {
         ref={triggerRef}
         type="button"
         onClick={handleOpen}
-        className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm hover:bg-black/5 dark:hover:bg-white/10"
+        className="flex items-center gap-1.5 rounded-md px-2 py-1 hover:bg-black/5 dark:hover:bg-white/10"
       >
-        {value ? (
-          <span className="flex items-center gap-1.5">
-            <Avatar name={value} size={18} />
-            {value}
-          </span>
+        {value.length > 0 ? (
+          <AvatarStack people={value} size={22} />
         ) : (
-          <span className="text-(--color-text-muted)">Empty</span>
+          <span className="text-sm text-(--color-text-muted)">Empty</span>
         )}
       </button>
 
@@ -62,23 +65,6 @@ export default function PersonPicker({ value, onChange }) {
               style={{ top: position.top, left: position.left }}
               className="fixed z-50 w-64 rounded-lg border border-(--color-border) bg-(--color-canvas) p-2 shadow-lg"
             >
-              {value && (
-                <div className="mb-2 flex items-center gap-1.5 rounded-md bg-black/5 px-2 py-1 text-sm dark:bg-white/10">
-                  <Avatar name={value} />
-                  <span className="flex-1 truncate">{value}</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onChange(null);
-                      setOpen(false);
-                    }}
-                    className="text-(--color-text-muted) hover:text-(--color-text)"
-                  >
-                    <Cancel01Icon size={14} strokeWidth={1.8} />
-                  </button>
-                </div>
-              )}
-
               <input
                 autoFocus
                 value={query}
@@ -90,26 +76,33 @@ export default function PersonPicker({ value, onChange }) {
               <div className="mb-1 px-1 text-xs font-medium text-(--color-text-muted)">
                 People
               </div>
-              <div className="flex flex-col gap-0.5">
+              <div className="flex max-h-56 flex-col gap-0.5 overflow-y-auto">
                 {filtered.length === 0 && (
                   <div className="px-2 py-1.5 text-sm text-(--color-text-muted)">
                     No matches
                   </div>
                 )}
-                {filtered.map((name) => (
-                  <button
-                    key={name}
-                    type="button"
-                    onClick={() => {
-                      onChange(name);
-                      setOpen(false);
-                    }}
-                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-black/5 dark:hover:bg-white/10"
-                  >
-                    <Avatar name={name} />
-                    {name}
-                  </button>
-                ))}
+                {filtered.map((person) => {
+                  const checked = selectedIds.has(person._id);
+                  return (
+                    <button
+                      key={person._id}
+                      type="button"
+                      onClick={() => toggle(person)}
+                      className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-black/5 dark:hover:bg-white/10"
+                    >
+                      <Avatar name={person.name} size={22} />
+                      <span className="min-w-0 flex-1 truncate">{person.name}</span>
+                      {checked && (
+                        <CheckmarkCircle02Icon
+                          size={15}
+                          strokeWidth={1.8}
+                          className="shrink-0 text-(--color-accent)"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="mt-1 border-t border-(--color-border) pt-1">

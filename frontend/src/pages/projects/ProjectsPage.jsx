@@ -15,7 +15,7 @@ import { listTasks } from "@/lib/tasks";
 import { listStageOptions, createStageOption } from "@/lib/projectStageOptions";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import SelectPicker from "@/components/ui/SelectPicker";
-import PersonPicker from "./PersonPicker";
+import LeadPicker from "./LeadPicker";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 
 function toDateInputValue(d) {
@@ -87,6 +87,11 @@ export default function ProjectsPage() {
     updateProject(id, updates).catch(() => {});
   }
 
+  function handleLeadsChange(projectId, people) {
+    setProjects((prev) => prev.map((p) => (p._id === projectId ? { ...p, leads: people } : p)));
+    updateProject(projectId, { leads: people.map((p) => p._id) }).catch(() => {});
+  }
+
   return (
     <div className="px-10 py-8">
       <div className="mb-6 flex items-center gap-2">
@@ -146,9 +151,9 @@ export default function ProjectsPage() {
                     </td>
 
                     <td className="py-2.5 pr-4" onClick={(e) => e.stopPropagation()}>
-                      <PersonPicker
-                        value={project.lead || null}
-                        onChange={(name) => patchProject(project._id, { lead: name ?? "" })}
+                      <LeadPicker
+                        value={project.leads ?? []}
+                        onChange={(people) => handleLeadsChange(project._id, people)}
                       />
                     </td>
 

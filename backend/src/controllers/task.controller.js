@@ -1,6 +1,15 @@
 import asyncHandler from "express-async-handler";
 import Task from "../models/Task.js";
+import Project from "../models/Project.js";
 import { requireMembership } from "../utils/workspaceAuth.js";
+import { notify } from "../utils/notify.js";
+
+const STATUS_LABELS = {
+  not_started: "Not started",
+  up_next: "Up next",
+  in_progress: "In progress",
+  done: "Done",
+};
 
 const STATUSES = ["not_started", "up_next", "in_progress", "done"];
 
@@ -97,6 +106,25 @@ export const moveTask = asyncHandler(async (req, res) => {
   }
 
   res.json({ ok: true });
+
+  if (sourceStatus !== status && task.projectId) {
+    try {
+      const project = await Project.findById(task.projectId).select("leads title");
+      if (project?.leads?.length) {
+        await notify({
+          recipientIds: project.leads,
+          actorId: req.user._id,
+          workspace: workspaceId,
+          type: "task_moved",
+          title: `${req.user.name} moved "${task.title}"`,
+          body: `${STATUS_LABELS[sourceStatus]} → ${STATUS_LABELS[status]}`,
+          link: `/tasks/${task._id}`,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to send task-moved notification:", err);
+    }
+  }
 });
 
 export const deleteTask = asyncHandler(async (req, res) => {

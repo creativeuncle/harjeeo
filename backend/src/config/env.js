@@ -13,4 +13,7 @@ export const env = {
   jwtRefreshExpiry: process.env.JWT_REFRESH_EXPIRY || "30d",
   resendApiKey: process.env.RESEND_API_KEY,
   emailFrom: process.env.EMAIL_FROM || "Harjeeo <onboarding@resend.dev>",
+  vapidPublicKey: process.env.VAPID_PUBLIC_KEY,
+  vapidPrivateKey: process.env.VAPID_PRIVATE_KEY,
+  vapidSubject: process.env.VAPID_SUBJECT || "mailto:support@harjeeo.app",
 };

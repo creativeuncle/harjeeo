@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Project from "../models/Project.js";
 import { requireMembership } from "../utils/workspaceAuth.js";
+import { notify } from "../utils/notify.js";
 
 const ALLOWED_UPDATE_FIELDS = [
   "title",
@@ -8,15 +9,17 @@ const ALLOWED_UPDATE_FIELDS = [
   "stage",
   "startDate",
   "endDate",
-  "lead",
+  "leads",
   "content",
 ];
 
+const LEAD_POPULATE = { path: "leads", select: "name avatarUrl" };
+
 export const listProjects = asyncHandler(async (req, res) => {
   await requireMembership(res, req.query.workspaceId, req.user._id);
-  const projects = await Project.find({ workspace: req.query.workspaceId }).sort({
-    createdAt: -1,
-  });
+  const projects = await Project.find({ workspace: req.query.workspaceId })
+    .sort({ createdAt: -1 })
+    .populate(LEAD_POPULATE);
   res.json({ projects });
 });
 
@@ -33,7 +36,7 @@ export const createProject = asyncHandler(async (req, res) => {
 });
 
 export const getProject = asyncHandler(async (req, res) => {
-  const project = await Project.findById(req.params.id);
+  const project = await Project.findById(req.params.id).populate(LEAD_POPULATE);
   if (!project) {
     res.status(404);
     throw new Error("Project not found");
@@ -55,10 +58,32 @@ export const updateProject = asyncHandler(async (req, res) => {
     if (field in req.body) updates[field] = req.body[field];
   }
 
+  const previousLeads = existing.leads.map(String);
+
   const project = await Project.findByIdAndUpdate(req.params.id, updates, {
     new: true,
     runValidators: true,
-  });
+  }).populate(LEAD_POPULATE);
+
+  if (updates.leads) {
+    const newlyAdded = updates.leads.filter((id) => !previousLeads.includes(String(id)));
+    if (newlyAdded.length) {
+      try {
+        await notify({
+          recipientIds: newlyAdded,
+          actorId: req.user._id,
+          workspace: project.workspace,
+          type: "lead_assigned",
+          title: `${req.user.name} added you as lead`,
+          body: project.title,
+          link: `/projects/${project._id}`,
+        });
+      } catch (err) {
+        console.error("Failed to send lead-assigned notification:", err);
+      }
+    }
+  }
+
   res.json({ project });
 });
 
