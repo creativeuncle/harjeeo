@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Task01Icon,
@@ -6,11 +7,14 @@ import {
   BubbleChatIcon,
   Calendar03Icon,
   BookOpen01Icon,
+  Note01Icon,
   Add01Icon,
   Logout01Icon,
 } from "hugeicons-react";
 import { api } from "@/lib/api";
+import { createNote } from "@/lib/notes";
 import { useAuthStore } from "@/store/authStore";
+import { useWorkspaceStore } from "@/store/workspaceStore";
 import Avatar from "@/components/ui/Avatar";
 import WorkspaceSwitcher from "./WorkspaceSwitcher";
 
@@ -52,6 +56,8 @@ export default function Sidebar() {
   const isChatActive = location.pathname.startsWith("/chat");
   const user = useAuthStore((s) => s.user);
   const clearSession = useAuthStore((s) => s.clearSession);
+  const workspaceId = useWorkspaceStore((s) => s.currentId);
+  const [creatingNote, setCreatingNote] = useState(false);
 
   async function handleLogout() {
     try {
@@ -59,6 +65,17 @@ export default function Sidebar() {
     } finally {
       clearSession();
       navigate("/login", { replace: true });
+    }
+  }
+
+  async function handleNewNote() {
+    if (creatingNote || !workspaceId) return;
+    setCreatingNote(true);
+    try {
+      const note = await createNote(workspaceId);
+      navigate(`/notes/${note._id}`);
+    } finally {
+      setCreatingNote(false);
     }
   }
 
@@ -73,6 +90,22 @@ export default function Sidebar() {
 
       {!isChatActive && (
         <>
+          <div className="mt-4 px-2 text-xs font-medium text-(--color-text-muted)">
+            Private
+          </div>
+          <nav className="mt-1 flex flex-col gap-0.5">
+            <SidebarLink to="/notes" label="Notes" icon={Note01Icon} />
+            <button
+              type="button"
+              onClick={handleNewNote}
+              disabled={creatingNote}
+              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-(--color-text-muted) hover:bg-black/5 disabled:opacity-60 dark:hover:bg-white/10"
+            >
+              <Add01Icon size={18} strokeWidth={1.8} />
+              <span>{creatingNote ? "Creating…" : "Add new"}</span>
+            </button>
+          </nav>
+
           <div className="mt-4 px-2 text-xs font-medium text-(--color-text-muted)">
             Teamspaces
           </div>
