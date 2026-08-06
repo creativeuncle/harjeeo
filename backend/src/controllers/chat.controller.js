@@ -87,18 +87,37 @@ export const listMessages = asyncHandler(async (req, res) => {
   res.json({ messages });
 });
 
+const ATTACHMENT_TYPES = ["image", "file", "audio"];
+
 export const createMessage = asyncHandler(async (req, res) => {
-  const { body } = req.body;
-  if (!body || !body.trim()) {
+  const { body, attachment } = req.body;
+  const trimmedBody = typeof body === "string" ? body.trim() : "";
+
+  let cleanAttachment = null;
+  if (attachment) {
+    if (!attachment.url || !ATTACHMENT_TYPES.includes(attachment.type)) {
+      res.status(400);
+      throw new Error("Invalid attachment");
+    }
+    cleanAttachment = {
+      url: attachment.url,
+      type: attachment.type,
+      name: attachment.name ?? "",
+    };
+  }
+
+  if (!trimmedBody && !cleanAttachment) {
     res.status(400);
     throw new Error("Message body is required");
   }
+
   const channel = await requireChannelMembership(req, res);
 
   const message = await Message.create({
     channel: channel._id,
     author: req.user._id,
-    body: body.trim(),
+    body: trimmedBody,
+    attachment: cleanAttachment,
   });
   await message.populate("author", "name avatarUrl");
   channel.lastMessageAt = new Date();

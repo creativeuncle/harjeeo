@@ -20,7 +20,7 @@ export async function listMessages(channelId) {
   return data.messages;
 }
 
-export async function sendMessage(channelId, body) {
-  const { data } = await api.post(`/chat/channels/${channelId}/messages`, { body });
+export async function sendMessage(channelId, body, attachment = null) {
+  const { data } = await api.post(`/chat/channels/${channelId}/messages`, { body, attachment });
   return data.message;
 }

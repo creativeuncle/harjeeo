@@ -1,10 +1,44 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { SentIcon, HashtagIcon } from "hugeicons-react";
+import { HashtagIcon, Download04Icon, Doc01Icon } from "hugeicons-react";
 import { listMessages, sendMessage } from "@/lib/chat";
 import { useAuthStore } from "@/store/authStore";
 import { useChatStore } from "@/store/chatStore";
 import { getSocket } from "@/lib/socket";
 import Avatar from "@/components/ui/Avatar";
+import ChatComposer from "./ChatComposer";
+
+function MessageAttachment({ attachment }) {
+  if (attachment.type === "image") {
+    return (
+      <a href={attachment.url} target="_blank" rel="noreferrer">
+        <img
+          src={attachment.url}
+          alt={attachment.name || "Image"}
+          className="mt-1 max-h-64 max-w-full rounded-lg object-cover"
+        />
+      </a>
+    );
+  }
+  if (attachment.type === "audio") {
+    return (
+      <audio controls src={attachment.url} className="mt-1 h-9 max-w-full">
+        Your browser doesn't support audio playback.
+      </audio>
+    );
+  }
+  return (
+    <a
+      href={attachment.url}
+      target="_blank"
+      rel="noreferrer"
+      className="mt-1 flex items-center gap-2 rounded-lg border border-black/10 bg-black/[.03] px-3 py-2 text-sm hover:bg-black/5 dark:border-white/10 dark:bg-white/[.05] dark:hover:bg-white/10"
+    >
+      <Doc01Icon size={16} strokeWidth={1.8} className="shrink-0" />
+      <span className="min-w-0 flex-1 truncate">{attachment.name || "File"}</span>
+      <Download04Icon size={14} strokeWidth={1.8} className="shrink-0" />
+    </a>
+  );
+}
 
 function channelLabel(channel, currentUserId) {
   if (!channel.isDM) return channel.name || "Untitled channel";
@@ -18,7 +52,6 @@ export default function ChatPage() {
   const activeChannelId = useChatStore((s) => s.activeChannelId);
 
   const [messages, setMessages] = useState([]);
-  const [draft, setDraft] = useState("");
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -49,12 +82,9 @@ export default function ChatPage() {
     [channels, activeChannelId]
   );
 
-  async function handleSend(e) {
-    e.preventDefault();
-    if (!draft.trim() || !activeChannelId) return;
-    const body = draft.trim();
-    setDraft("");
-    await sendMessage(activeChannelId, body);
+  async function handleSend(body, attachment) {
+    if (!activeChannelId) return;
+    await sendMessage(activeChannelId, body, attachment);
   }
 
   return (
@@ -77,7 +107,8 @@ export default function ChatPage() {
                 return isMine ? (
                   <div key={m._id} className="flex justify-end">
                     <div className="max-w-[75%] rounded-2xl rounded-tr-sm bg-(--color-accent) px-4 py-2.5 text-sm text-white">
-                      <div className="whitespace-pre-wrap">{m.body}</div>
+                      {m.body && <div className="whitespace-pre-wrap">{m.body}</div>}
+                      {m.attachment && <MessageAttachment attachment={m.attachment} />}
                       <div className="mt-1 text-right text-[10px] text-white/70">
                         {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </div>
@@ -93,7 +124,8 @@ export default function ChatPage() {
                           {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
-                      <div className="text-sm whitespace-pre-wrap">{m.body}</div>
+                      {m.body && <div className="text-sm whitespace-pre-wrap">{m.body}</div>}
+                      {m.attachment && <MessageAttachment attachment={m.attachment} />}
                     </div>
                   </div>
                 );
@@ -107,24 +139,7 @@ export default function ChatPage() {
           </div>
 
           <div className="px-6 pb-6">
-            <form
-              onSubmit={handleSend}
-              className="mx-auto flex max-w-2xl items-center gap-2 rounded-2xl border border-(--color-border) bg-(--color-canvas) px-3 py-2.5 shadow-sm"
-            >
-              <input
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                placeholder="Message…"
-                className="flex-1 border-none bg-transparent text-sm outline-none placeholder:text-(--color-text-muted)"
-              />
-              <button
-                type="submit"
-                disabled={!draft.trim()}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-(--color-accent) text-white disabled:opacity-30"
-              >
-                <SentIcon size={14} strokeWidth={1.8} />
-              </button>
-            </form>
+            <ChatComposer onSend={handleSend} />
           </div>
         </>
       ) : (
