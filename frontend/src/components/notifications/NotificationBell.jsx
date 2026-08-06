@@ -34,6 +34,36 @@ const TYPE_ICON = {
   mention: AtIcon,
 };
 
+function groupMentions(notifications) {
+  const grouped = [];
+  const groupByLink = new Map();
+
+  for (const n of notifications) {
+    if (n.type !== "mention" || !n.link) {
+      grouped.push(n);
+      continue;
+    }
+    const existing = groupByLink.get(n.link);
+    if (existing) {
+      existing.items.push(n);
+    } else {
+      const group = { grouped: true, link: n.link, items: [n] };
+      groupByLink.set(n.link, group);
+      grouped.push(group);
+    }
+  }
+
+  return grouped;
+}
+
+function mentionSummary(items) {
+  const names = [...new Set(items.map((n) => n.actor?.name).filter(Boolean))];
+  if (names.length === 0) return "You were mentioned";
+  if (names.length === 1) return `${names[0]} mentioned you`;
+  if (names.length === 2) return `${names[0]} and ${names[1]} mentioned you`;
+  return `${names[0]} and ${names.length - 1} others mentioned you`;
+}
+
 function formatTimestamp(iso) {
   const date = new Date(iso);
   const now = new Date();
@@ -191,7 +221,51 @@ export default function NotificationBell() {
                     No notifications yet
                   </div>
                 )}
-                {notifications.map((notification) => {
+                {groupMentions(notifications).map((entry) => {
+                  if (entry.grouped) {
+                    const items = entry.items;
+                    const anyUnread = items.some((n) => !n.read);
+                    const latest = items[0];
+                    const names = [...new Set(items.map((n) => n.actor?.name).filter(Boolean))];
+                    return (
+                      <button
+                        key={`group-${entry.link}`}
+                        type="button"
+                        onClick={() => {
+                          setOpen(false);
+                          items.forEach((n) => {
+                            if (!n.read) markNotificationReadLocally(n._id);
+                          });
+                          if (entry.link) navigate(entry.link);
+                        }}
+                        className={`flex w-full items-start gap-2.5 px-3 py-2.5 text-left hover:bg-black/5 dark:hover:bg-white/10 ${
+                          anyUnread ? "bg-(--color-accent)/5" : ""
+                        }`}
+                      >
+                        <span className="flex -space-x-2">
+                          {names.slice(0, 3).map((name) => (
+                            <span key={name} className="ring-2 ring-(--color-canvas) rounded-full">
+                              <Avatar name={name} size={26} />
+                            </span>
+                          ))}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm">{mentionSummary(items)}</div>
+                          <div className="truncate text-xs text-(--color-text-muted)">
+                            {items.length} mention{items.length > 1 ? "s" : ""}
+                          </div>
+                          <div className="mt-0.5 text-xs text-(--color-text-muted)">
+                            {formatTimestamp(latest.createdAt)}
+                          </div>
+                        </div>
+                        {anyUnread && (
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-(--color-accent)" />
+                        )}
+                      </button>
+                    );
+                  }
+
+                  const notification = entry;
                   const Icon = TYPE_ICON[notification.type] ?? Notification03Icon;
                   const isInvite = notification.type === "workspace_invite";
                   const inviteId = notification.meta?.inviteId;
