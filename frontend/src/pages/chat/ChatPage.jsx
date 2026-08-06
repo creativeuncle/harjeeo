@@ -413,7 +413,7 @@ export default function ChatPage() {
           <PinnedBar messages={messages} onJumpTo={handleJumpTo} onUnpin={handlePin} />
 
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
-            <div className="mx-auto flex max-w-2xl flex-col gap-5">
+            <div className="flex flex-col gap-5">
               {messages.map((m) => (
                 <MessageRow
                   key={m._id}

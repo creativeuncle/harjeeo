@@ -43,7 +43,7 @@ export default function DashboardPage() {
   const maxStatusCount = Math.max(...Object.values(taskStatusCounts), 1);
 
   return (
-    <div className="mx-auto max-w-3xl px-10 py-8">
+    <div className="px-10 py-8">
       <div className="mb-6 flex items-center gap-2">
         <DashboardSquare01Icon size={26} strokeWidth={1.8} />
         <h1 className="text-2xl font-semibold">Dashboard</h1>
