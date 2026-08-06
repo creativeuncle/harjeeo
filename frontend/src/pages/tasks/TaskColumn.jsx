@@ -7,8 +7,8 @@ export default function TaskColumn({ column, tasks, onAddTask, creating }) {
   const { setNodeRef } = useDroppable({ id: `col:${column.key}` });
 
   return (
-    <div>
-      <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+    <div className={`rounded-xl p-2 ${column.bgClass ?? ""} dark:bg-white/[.03]`}>
+      <div className="mb-2 flex items-center gap-2 px-1 text-sm font-medium">
         <span className={`h-2 w-2 rounded-full ${column.dot}`} />
         {column.label}
         <span className="text-(--color-text-muted)">{tasks.length}</span>
