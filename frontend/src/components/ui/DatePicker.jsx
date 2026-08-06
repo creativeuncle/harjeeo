@@ -80,7 +80,7 @@ export default function DatePicker({ value, onChange }) {
         ref={triggerRef}
         type="button"
         onClick={handleOpen}
-        className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm hover:bg-black/5 dark:hover:bg-white/10"
+        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-black/5 dark:hover:bg-white/10"
       >
         <Calendar03Icon size={18} strokeWidth={1.8} className="text-(--color-text-muted)" />
         <span className={selected ? "" : "text-(--color-text-muted)"}>

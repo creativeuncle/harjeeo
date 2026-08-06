@@ -55,9 +55,9 @@ export default function PropertyMenu({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-32 shrink-0 items-center gap-1.5 rounded px-1 py-0.5 text-left text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+        className="flex w-32 shrink-0 items-center gap-2 rounded-md px-1 py-1.5 text-left text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
       >
-        {Icon && <Icon size={15} strokeWidth={1.8} className="shrink-0" />}
+        {Icon && <Icon size={18} strokeWidth={1.8} className="shrink-0" />}
         <span className="min-w-0 truncate">{property.name}</span>
       </button>
 

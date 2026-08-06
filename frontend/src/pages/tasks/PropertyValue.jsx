@@ -2,7 +2,7 @@ import { useAuthStore } from "@/store/authStore";
 import { OPTION_COLOR_CLASSES, nextOptionColor } from "@/lib/propertyTypes";
 
 const inputClass =
-  "w-full rounded-md border border-transparent bg-transparent px-2 py-1 text-sm outline-none hover:border-(--color-border) focus:border-(--color-border)";
+  "w-full rounded-md border border-transparent bg-transparent px-2 py-1.5 text-sm outline-none hover:border-(--color-border) focus:border-(--color-border)";
 
 function OptionPill({ option }) {
   return (
@@ -20,7 +20,7 @@ export default function PropertyValue({ property, task, onChange, onAddOption })
 
   if (property.type === "createdTime") {
     return (
-      <span className="px-2 py-1 text-sm text-(--color-text-muted)">
+      <span className="px-2 py-1.5 text-sm text-(--color-text-muted)">
         {new Date(task.createdAt).toLocaleString()}
       </span>
     );
@@ -28,7 +28,7 @@ export default function PropertyValue({ property, task, onChange, onAddOption })
 
   if (property.type === "createdBy") {
     return (
-      <span className="px-2 py-1 text-sm text-(--color-text-muted)">
+      <span className="px-2 py-1.5 text-sm text-(--color-text-muted)">
         {user?.name ?? "—"}
       </span>
     );
@@ -40,7 +40,7 @@ export default function PropertyValue({ property, task, onChange, onAddOption })
         type="checkbox"
         checked={Boolean(value)}
         onChange={(e) => onChange(e.target.checked)}
-        className="h-4 w-4 rounded"
+        className="h-[18px] w-[18px] rounded border-(--color-border) accent-(--color-accent)"
       />
     );
   }
@@ -71,7 +71,7 @@ export default function PropertyValue({ property, task, onChange, onAddOption })
           }
           onChange(e.target.value || null);
         }}
-        className="rounded-md border border-(--color-border) bg-(--color-canvas) px-2 py-1 text-sm outline-none"
+        className="rounded-md border border-(--color-border) bg-(--color-canvas) px-2 py-1.5 text-sm outline-none"
       >
         <option value="">Empty</option>
         {options.map((opt) => (

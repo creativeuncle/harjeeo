@@ -215,16 +215,16 @@ export default function TaskDetailPage() {
         />
       </div>
 
-      <div className="flex flex-col gap-2 text-sm">
-        <div className="flex items-center gap-3">
-          <span className="flex w-32 shrink-0 items-center gap-1.5 text-(--color-text-muted)">
-            <Target02Icon size={15} strokeWidth={1.8} />
+      <div className="flex flex-col gap-1 text-sm">
+        <div className="flex min-h-9 items-center gap-3">
+          <span className="flex w-32 shrink-0 items-center gap-2 text-(--color-text-muted)">
+            <Target02Icon size={18} strokeWidth={1.8} />
             Project
           </span>
           <select
             value={task.projectId ?? ""}
             onChange={(e) => patchField("projectId", e.target.value || null)}
-            className="rounded-md border border-(--color-border) bg-(--color-canvas) px-2 py-1 text-sm outline-none"
+            className="rounded-md border border-(--color-border) bg-(--color-canvas) px-2 py-1.5 text-sm outline-none"
           >
             <option value="">Empty</option>
             {projects.map((p) => (
@@ -235,9 +235,9 @@ export default function TaskDetailPage() {
           </select>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="flex w-32 shrink-0 items-center gap-1.5 text-(--color-text-muted)">
-            <Calendar03Icon size={15} strokeWidth={1.8} />
+        <div className="flex min-h-9 items-center gap-3">
+          <span className="flex w-32 shrink-0 items-center gap-2 text-(--color-text-muted)">
+            <Calendar03Icon size={18} strokeWidth={1.8} />
             Due date
           </span>
           <DatePicker
@@ -246,12 +246,12 @@ export default function TaskDetailPage() {
           />
         </div>
 
-        <div className="flex items-start gap-3">
-          <span className="flex w-32 shrink-0 items-center gap-1.5 pt-1 text-(--color-text-muted)">
-            <LinkSquare01Icon size={15} strokeWidth={1.8} />
+        <div className="flex min-h-9 items-start gap-3">
+          <span className="flex w-32 shrink-0 items-center gap-2 pt-1.5 text-(--color-text-muted)">
+            <LinkSquare01Icon size={18} strokeWidth={1.8} />
             Depends on
           </span>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 pt-1">
             <TasksPicker
               allTasks={allTasks.filter((t) => t._id !== id)}
               selectedTasks={task.dependsOn ?? []}
@@ -259,7 +259,7 @@ export default function TaskDetailPage() {
             />
             {(task.dependsOn ?? []).some((d) => d.status !== "done") && (
               <div className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
-                <Alert02Icon size={13} strokeWidth={1.8} />
+                <Alert02Icon size={14} strokeWidth={1.8} />
                 Can't be marked Done until every dependency is Done
               </div>
             )}
@@ -268,8 +268,12 @@ export default function TaskDetailPage() {
 
         {properties.map((property) => {
           const Icon = PROPERTY_TYPE_META[property.type]?.icon;
+          const wraps = property.type === "multiSelect";
           return (
-            <div key={property._id} className="flex items-start gap-3">
+            <div
+              key={property._id}
+              className={`flex min-h-9 gap-3 ${wraps ? "items-start" : "items-center"}`}
+            >
               <PropertyMenu
                 property={property}
                 icon={Icon}
@@ -278,7 +282,7 @@ export default function TaskDetailPage() {
                 onDuplicate={() => handleDuplicateProperty(property)}
                 onDelete={() => handleDeleteProperty(property)}
               />
-              <div className="min-w-0 flex-1 pt-0.5">
+              <div className={`min-w-0 flex-1 ${wraps ? "pt-1.5" : ""}`}>
                 <PropertyValue
                   property={property}
                   task={task}
