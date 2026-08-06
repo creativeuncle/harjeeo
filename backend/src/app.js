@@ -20,6 +20,7 @@ import workspaceRoutes from "./routes/workspace.routes.js";
 import publicRoutes from "./routes/public.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
+import trashRoutes from "./routes/trash.routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -48,6 +49,7 @@ app.use("/api/workspaces", workspaceRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/uploads", uploadRoutes);
+app.use("/api/trash", trashRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

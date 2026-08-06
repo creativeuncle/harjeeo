@@ -20,7 +20,7 @@ const LEAD_POPULATE = { path: "leads", select: "name avatarUrl" };
 
 export const listProjects = asyncHandler(async (req, res) => {
   await requireMembership(res, req.query.workspaceId, req.user._id);
-  const projects = await Project.find({ workspace: req.query.workspaceId })
+  const projects = await Project.find({ workspace: req.query.workspaceId, deletedAt: null })
     .sort({ createdAt: -1 })
     .populate(LEAD_POPULATE);
   res.json({ projects });
@@ -143,7 +143,8 @@ export const deleteProject = asyncHandler(async (req, res) => {
   }
   await requireMembership(res, existing.workspace, req.user._id);
 
-  await existing.deleteOne();
+  existing.deletedAt = new Date();
+  await existing.save();
   res.status(204).send();
 
   logActivity({

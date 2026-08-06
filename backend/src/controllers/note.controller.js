@@ -9,6 +9,7 @@ export const listNotes = asyncHandler(async (req, res) => {
   const notes = await Note.find({
     workspace: req.query.workspaceId,
     owner: req.user._id,
+    deletedAt: null,
   }).sort({ createdAt: -1 });
   res.json({ notes });
 });
@@ -75,6 +76,7 @@ export const deleteNote = asyncHandler(async (req, res) => {
     throw new Error("This note is private to its owner");
   }
 
-  await existing.deleteOne();
+  existing.deletedAt = new Date();
+  await existing.save();
   res.status(204).send();
 });

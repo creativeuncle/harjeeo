@@ -157,7 +157,7 @@ export default function TaskDetailPage() {
   }
 
   async function handleDelete() {
-    if (!window.confirm("Delete this task? This can't be undone.")) return;
+    if (!window.confirm("Move this task to trash? You can restore it within 30 days.")) return;
     await deleteTask(id);
     navigate("/tasks", { replace: true });
   }

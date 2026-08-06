@@ -11,6 +11,7 @@ import {
   Add01Icon,
   HashtagIcon,
   Logout01Icon,
+  Delete02Icon,
 } from "hugeicons-react";
 import { api } from "@/lib/api";
 import { disconnectSocket } from "@/lib/socket";
@@ -170,6 +171,10 @@ export default function Sidebar() {
             {teamspaceLinks.map((link) => (
               <SidebarLink key={link.to} {...link} />
             ))}
+          </nav>
+
+          <nav className="mt-4 flex flex-col gap-0.5">
+            <SidebarLink to="/trash" label="Trash" icon={Delete02Icon} />
           </nav>
         </>
       )}

@@ -17,7 +17,7 @@ const STATUSES = ["not_started", "up_next", "in_progress", "done"];
 
 export const listTasks = asyncHandler(async (req, res) => {
   await requireMembership(res, req.query.workspaceId, req.user._id);
-  const tasks = await Task.find({ workspace: req.query.workspaceId }).sort({
+  const tasks = await Task.find({ workspace: req.query.workspaceId, deletedAt: null }).sort({
     status: 1,
     order: 1,
   });
@@ -158,7 +158,9 @@ export const moveTask = asyncHandler(async (req, res) => {
   task.status = status;
   await task.save();
 
-  const destTasks = await Task.find({ workspace: workspaceId, status }).sort({ order: 1 });
+  const destTasks = await Task.find({ workspace: workspaceId, status, deletedAt: null }).sort({
+    order: 1,
+  });
   const reordered = destTasks.filter((t) => String(t._id) !== String(task._id));
   reordered.splice(Math.min(order, reordered.length), 0, task);
   await Promise.all(
@@ -166,7 +168,11 @@ export const moveTask = asyncHandler(async (req, res) => {
   );
 
   if (sourceStatus !== status) {
-    const sourceTasks = await Task.find({ workspace: workspaceId, status: sourceStatus }).sort({
+    const sourceTasks = await Task.find({
+      workspace: workspaceId,
+      status: sourceStatus,
+      deletedAt: null,
+    }).sort({
       order: 1,
     });
     await Promise.all(
@@ -217,7 +223,8 @@ export const deleteTask = asyncHandler(async (req, res) => {
   }
   await requireMembership(res, task.workspace, req.user._id);
 
-  await task.deleteOne();
+  task.deletedAt = new Date();
+  await task.save();
   res.status(204).send();
 
   logActivity({

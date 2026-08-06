@@ -97,7 +97,7 @@ export default function ProjectDetailPage() {
   }
 
   async function handleDelete() {
-    if (!window.confirm("Delete this project? This can't be undone.")) return;
+    if (!window.confirm("Move this project to trash? You can restore it within 30 days.")) return;
     await deleteProject(id);
     navigate("/projects", { replace: true });
   }

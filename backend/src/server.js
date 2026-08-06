@@ -10,12 +10,14 @@ import { setIO } from "./socket.js";
 import { hocuspocus } from "./collab.js";
 import { migrateWorkspaces, migrateLegacyProjectLeads } from "./utils/migrateWorkspaces.js";
 import { scheduleDueDateReminders } from "./utils/dueDateReminders.js";
+import { schedulePurgeTrash } from "./utils/purgeTrash.js";
 
 async function start() {
   await connectDB();
   await migrateWorkspaces();
   await migrateLegacyProjectLeads();
   scheduleDueDateReminders();
+  schedulePurgeTrash();
 
   const server = http.createServer(app);
 

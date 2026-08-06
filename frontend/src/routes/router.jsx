@@ -19,6 +19,7 @@ import ProfilePage from "@/pages/profile/ProfilePage";
 import WorkspaceSettingsPage from "@/pages/workspace/WorkspaceSettingsPage";
 import AcceptInvitePage from "@/pages/workspace/AcceptInvitePage";
 import SharedContentPage from "@/pages/share/SharedContentPage";
+import TrashPage from "@/pages/trash/TrashPage";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -46,6 +47,7 @@ export const router = createBrowserRouter([
           { path: "profile", element: <ProfilePage /> },
           { path: "workspace/:id/settings", element: <WorkspaceSettingsPage /> },
           { path: "invites/accept", element: <AcceptInvitePage /> },
+          { path: "trash", element: <TrashPage /> },
         ],
       },
     ],

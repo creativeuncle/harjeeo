@@ -52,7 +52,7 @@ export default function NoteDetailPage() {
   }
 
   async function handleDelete() {
-    if (!window.confirm("Delete this note? This can't be undone.")) return;
+    if (!window.confirm("Move this note to trash? You can restore it within 30 days.")) return;
     await deleteNote(id);
     navigate("/notes", { replace: true });
   }
