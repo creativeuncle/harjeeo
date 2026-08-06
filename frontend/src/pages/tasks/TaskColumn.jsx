@@ -3,7 +3,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Add01Icon } from "hugeicons-react";
 import TaskCard from "./TaskCard";
 
-export default function TaskColumn({ column, tasks, onAddTask, creating }) {
+export default function TaskColumn({ column, tasks, properties, onAddTask, creating }) {
   const { setNodeRef } = useDroppable({ id: `col:${column.key}` });
 
   return (
@@ -20,7 +20,7 @@ export default function TaskColumn({ column, tasks, onAddTask, creating }) {
       >
         <div ref={setNodeRef} className="flex min-h-[8px] flex-col gap-2">
           {tasks.map((task) => (
-            <TaskCard key={task._id} task={task} />
+            <TaskCard key={task._id} task={task} properties={properties} />
           ))}
         </div>
       </SortableContext>

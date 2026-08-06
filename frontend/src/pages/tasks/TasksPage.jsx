@@ -9,7 +9,7 @@ import {
   closestCorners,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import { STATUS_COLUMNS, listTasks, createTask, moveTask } from "@/lib/tasks";
+import { STATUS_COLUMNS, listTasks, createTask, moveTask, listTaskProperties } from "@/lib/tasks";
 import { listProjects } from "@/lib/projects";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import ViewSwitcher from "@/components/ui/ViewSwitcher";
@@ -41,6 +41,7 @@ export default function TasksPage() {
   const workspaceId = useWorkspaceStore((s) => s.currentId);
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creatingCol, setCreatingCol] = useState(null);
   const [view, setView] = useState(() => localStorage.getItem(VIEW_STORAGE_KEY) ?? "board");
@@ -58,10 +59,11 @@ export default function TasksPage() {
       return;
     }
     setLoading(true);
-    Promise.all([listTasks(workspaceId), listProjects(workspaceId)])
-      .then(([t, projs]) => {
+    Promise.all([listTasks(workspaceId), listProjects(workspaceId), listTaskProperties(workspaceId)])
+      .then(([t, projs, props]) => {
         setTasks(t);
         setProjects(projs);
+        setProperties(props);
       })
       .finally(() => setLoading(false));
   }, [workspaceId]);
@@ -294,6 +296,7 @@ export default function TasksPage() {
                 key={column.key}
                 column={column}
                 tasks={tasksByStatus[column.key]}
+                properties={properties}
                 onAddTask={handleAddTask}
                 creating={creatingCol === column.key}
               />
