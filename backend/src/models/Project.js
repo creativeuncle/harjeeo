@@ -15,6 +15,15 @@ const projectSchema = new mongoose.Schema(
     deletedAt: { type: Date, default: null },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     workspace: { type: mongoose.Schema.Types.ObjectId, ref: "Workspace", required: true },
+    memberRoles: [
+      new mongoose.Schema(
+        {
+          user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+          role: { type: String, enum: ["viewer", "editor"], required: true },
+        },
+        { _id: false }
+      ),
+    ],
   },
   { timestamps: true }
 );

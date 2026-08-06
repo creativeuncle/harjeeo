@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Delete02Icon, Flag01Icon, Calendar03Icon, UserIcon, Task01Icon } from "hugeicons-react";
+import {
+  Delete02Icon,
+  Flag01Icon,
+  Calendar03Icon,
+  UserIcon,
+  Task01Icon,
+  LockIcon,
+} from "hugeicons-react";
 import { getProject, updateProject, deleteProject } from "@/lib/projects";
 import { listTasks, updateTask } from "@/lib/tasks";
 import { listStageOptions, createStageOption } from "@/lib/projectStageOptions";
@@ -13,6 +20,7 @@ import SelectPicker from "@/components/ui/SelectPicker";
 import CommentSection from "@/components/ui/CommentSection";
 import SharePopover from "@/components/ui/SharePopover";
 import ExportMenu from "@/components/ui/ExportMenu";
+import ManageAccessPopover from "@/components/ui/ManageAccessPopover";
 import LeadPicker from "./LeadPicker";
 import TasksPicker from "./TasksPicker";
 
@@ -116,13 +124,30 @@ export default function ProjectDetailPage() {
     );
   }
 
+  const canEdit = project.canEdit !== false;
+
   return (
     <div className="mx-auto max-w-3xl px-10 py-8">
+      {!canEdit && (
+        <div className="mb-4 flex items-center gap-2 rounded-md bg-black/5 px-3 py-2 text-xs text-(--color-text-muted) dark:bg-white/10">
+          <LockIcon size={14} strokeWidth={1.8} />
+          You have viewer access to this project — it's read-only.
+        </div>
+      )}
+
       <div className="mb-1 flex items-center justify-between">
         <span className="text-xs text-(--color-text-muted)">
           {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
         </span>
         <div className="flex items-center gap-1 print:hidden">
+          {project.canManageAccess && (
+            <ManageAccessPopover
+              projectId={id}
+              workspaceId={workspaceId}
+              memberRoles={project.memberRoles}
+              onChange={setProject}
+            />
+          )}
           <ExportMenu title={project.title} content={project.content} />
           <SharePopover
             isPublic={project.isPublic}
@@ -130,17 +155,20 @@ export default function ProjectDetailPage() {
             shareType="projects"
             id={id}
           />
-          <button
-            type="button"
-            onClick={handleDelete}
-            title="Delete project"
-            className="rounded-md p-1.5 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
-          >
-            <Delete02Icon size={16} strokeWidth={1.8} />
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              title="Delete project"
+              className="rounded-md p-1.5 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+            >
+              <Delete02Icon size={16} strokeWidth={1.8} />
+            </button>
+          )}
         </div>
       </div>
 
+      <div className={!canEdit ? "pointer-events-none" : ""}>
       <div className="mb-4">
         <IconPicker
           trigger={
@@ -206,6 +234,7 @@ export default function ProjectDetailPage() {
           />
         </div>
       </div>
+      </div>
 
       <div className="mt-8 border-t border-(--color-border) pt-6">
         <RichTextEditor
@@ -214,6 +243,7 @@ export default function ProjectDetailPage() {
           placeholder="Write a description, notes, or plan for this project. Type '/' for commands…"
           mentionItems={mentionItems}
           collabDocName={`project:${id}`}
+          editable={canEdit}
         />
       </div>
 

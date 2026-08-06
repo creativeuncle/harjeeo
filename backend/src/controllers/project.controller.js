@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Project from "../models/Project.js";
 import { requireMembership } from "../utils/workspaceAuth.js";
+import { projectRoleFor, canEditProject } from "../utils/projectPermissions.js";
 import { notify } from "../utils/notify.js";
 import { newlyMentionedIds } from "../utils/mentions.js";
 import { logActivity } from "../utils/activity.js";
@@ -16,7 +17,18 @@ const ALLOWED_UPDATE_FIELDS = [
   "isPublic",
 ];
 
+const WORKSPACE_ADMIN_ROLES = ["owner", "admin"];
+
 const LEAD_POPULATE = { path: "leads", select: "name avatarUrl" };
+const MEMBER_ROLE_POPULATE = { path: "memberRoles.user", select: "name avatarUrl email" };
+
+function attachPermissions(project, userId, workspaceRole) {
+  const obj = project.toObject ? project.toObject() : project;
+  obj.myRole = projectRoleFor(project, userId, workspaceRole);
+  obj.canEdit = obj.myRole === "editor";
+  obj.canManageAccess = WORKSPACE_ADMIN_ROLES.includes(workspaceRole);
+  return obj;
+}
 
 export const listProjects = asyncHandler(async (req, res) => {
   await requireMembership(res, req.query.workspaceId, req.user._id);
@@ -49,13 +61,15 @@ export const createProject = asyncHandler(async (req, res) => {
 });
 
 export const getProject = asyncHandler(async (req, res) => {
-  const project = await Project.findById(req.params.id).populate(LEAD_POPULATE);
+  const project = await Project.findById(req.params.id)
+    .populate(LEAD_POPULATE)
+    .populate(MEMBER_ROLE_POPULATE);
   if (!project) {
     res.status(404);
     throw new Error("Project not found");
   }
-  await requireMembership(res, project.workspace, req.user._id);
-  res.json({ project });
+  const membership = await requireMembership(res, project.workspace, req.user._id);
+  res.json({ project: attachPermissions(project, req.user._id, membership.role) });
 });
 
 export const updateProject = asyncHandler(async (req, res) => {
@@ -64,7 +78,11 @@ export const updateProject = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Project not found");
   }
-  await requireMembership(res, existing.workspace, req.user._id);
+  const membership = await requireMembership(res, existing.workspace, req.user._id);
+  if (!canEditProject(existing, req.user._id, membership.role)) {
+    res.status(403);
+    throw new Error("You only have viewer access to this project");
+  }
 
   const updates = {};
   for (const field of ALLOWED_UPDATE_FIELDS) {
@@ -79,7 +97,9 @@ export const updateProject = asyncHandler(async (req, res) => {
   const project = await Project.findByIdAndUpdate(req.params.id, updates, {
     new: true,
     runValidators: true,
-  }).populate(LEAD_POPULATE);
+  })
+    .populate(LEAD_POPULATE)
+    .populate(MEMBER_ROLE_POPULATE);
 
   if (updates.leads) {
     const newlyAdded = updates.leads.filter((id) => !previousLeads.includes(String(id)));
@@ -119,7 +139,7 @@ export const updateProject = asyncHandler(async (req, res) => {
     }
   }
 
-  res.json({ project });
+  res.json({ project: attachPermissions(project, req.user._id, membership.role) });
 
   if (Object.keys(updates).length) {
     logActivity({
@@ -141,7 +161,11 @@ export const deleteProject = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Project not found");
   }
-  await requireMembership(res, existing.workspace, req.user._id);
+  const membership = await requireMembership(res, existing.workspace, req.user._id);
+  if (!canEditProject(existing, req.user._id, membership.role)) {
+    res.status(403);
+    throw new Error("You only have viewer access to this project");
+  }
 
   existing.deletedAt = new Date();
   await existing.save();
@@ -155,4 +179,57 @@ export const deleteProject = asyncHandler(async (req, res) => {
     targetId: existing._id,
     targetLabel: existing.title,
   });
+});
+
+export const setProjectMemberRole = asyncHandler(async (req, res) => {
+  const { userId, role } = req.body;
+  if (!userId || !["viewer", "editor"].includes(role)) {
+    res.status(400);
+    throw new Error("userId and a valid role (viewer or editor) are required");
+  }
+
+  const project = await Project.findById(req.params.id);
+  if (!project) {
+    res.status(404);
+    throw new Error("Project not found");
+  }
+  const membership = await requireMembership(res, project.workspace, req.user._id);
+  if (!WORKSPACE_ADMIN_ROLES.includes(membership.role)) {
+    res.status(403);
+    throw new Error("Only workspace owners or admins can manage project access");
+  }
+
+  const existingIndex = project.memberRoles.findIndex((m) => String(m.user) === String(userId));
+  if (existingIndex !== -1) {
+    project.memberRoles[existingIndex].role = role;
+  } else {
+    project.memberRoles.push({ user: userId, role });
+  }
+  await project.save();
+  await project.populate(MEMBER_ROLE_POPULATE);
+  await project.populate(LEAD_POPULATE);
+
+  res.json({ project: attachPermissions(project, req.user._id, membership.role) });
+});
+
+export const removeProjectMemberRole = asyncHandler(async (req, res) => {
+  const project = await Project.findById(req.params.id);
+  if (!project) {
+    res.status(404);
+    throw new Error("Project not found");
+  }
+  const membership = await requireMembership(res, project.workspace, req.user._id);
+  if (!WORKSPACE_ADMIN_ROLES.includes(membership.role)) {
+    res.status(403);
+    throw new Error("Only workspace owners or admins can manage project access");
+  }
+
+  project.memberRoles = project.memberRoles.filter(
+    (m) => String(m.user) !== String(req.params.userId)
+  );
+  await project.save();
+  await project.populate(MEMBER_ROLE_POPULATE);
+  await project.populate(LEAD_POPULATE);
+
+  res.json({ project: attachPermissions(project, req.user._id, membership.role) });
 });
