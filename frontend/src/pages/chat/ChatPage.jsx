@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Add01Icon, SentIcon, HashtagIcon } from "hugeicons-react";
+import { Add01Icon, SentIcon, HashtagIcon, Search01Icon } from "hugeicons-react";
 import { listChannels, createChannel, getOrCreateDM, listMessages, sendMessage } from "@/lib/chat";
 import { listMembers } from "@/lib/workspaces";
 import { useWorkspaceStore } from "@/store/workspaceStore";
@@ -24,6 +24,7 @@ export default function ChatPage() {
   const [draft, setDraft] = useState("");
   const [showNewChannel, setShowNewChannel] = useState(false);
   const [newChannelName, setNewChannelName] = useState("");
+  const [query, setQuery] = useState("");
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -65,6 +66,11 @@ export default function ChatPage() {
     [channels, activeChannelId]
   );
 
+  const filteredMembers = useMemo(
+    () => members.filter((m) => m.name.toLowerCase().includes(query.toLowerCase())),
+    [members, query]
+  );
+
   async function handleSend(e) {
     e.preventDefault();
     if (!draft.trim() || !activeChannelId) return;
@@ -92,18 +98,64 @@ export default function ChatPage() {
     setShowNewChannel(false);
   }
 
+  function dmChannelFor(userId) {
+    return channels.find((c) => c.isDM && c.members.some((m) => m._id === userId));
+  }
+
   return (
     <div className="flex h-full">
-      <div className="flex w-64 shrink-0 flex-col border-r border-(--color-border) p-3">
-        <div className="mb-2 flex items-center justify-between px-1">
-          <span className="text-xs font-semibold uppercase text-(--color-text-muted)">Channels</span>
+      {/* Left rail — mirrors Notion's "Welcome to Notion" sidebar list, but for people */}
+      <div className="flex w-72 shrink-0 flex-col border-r border-(--color-border) bg-black/[.015] p-3 dark:bg-white/[.02]">
+        <div className="mb-3 flex items-center gap-2 rounded-lg border border-(--color-border) bg-(--color-canvas) px-2.5 py-1.5">
+          <Search01Icon size={14} strokeWidth={1.8} className="text-(--color-text-muted)" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search people…"
+            className="w-full border-none bg-transparent text-sm outline-none placeholder:text-(--color-text-muted)"
+          />
+        </div>
+
+        {channels.filter((c) => !c.isDM).length > 0 && (
+          <>
+            <div className="mb-1 flex items-center justify-between px-1">
+              <span className="text-xs font-semibold uppercase tracking-wide text-(--color-text-muted)">
+                Channels
+              </span>
+            </div>
+            <div className="mb-3 flex flex-col gap-0.5">
+              {channels
+                .filter((c) => !c.isDM)
+                .map((c) => (
+                  <button
+                    key={c._id}
+                    type="button"
+                    onClick={() => setActiveChannelId(c._id)}
+                    className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors ${
+                      c._id === activeChannelId
+                        ? "bg-black/[.06] font-medium dark:bg-white/[.08]"
+                        : "text-(--color-text-muted) hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                    }`}
+                  >
+                    <HashtagIcon size={14} strokeWidth={1.8} />
+                    <span className="truncate">{channelLabel(c, currentUser?._id)}</span>
+                  </button>
+                ))}
+            </div>
+          </>
+        )}
+
+        <div className="mb-1 flex items-center justify-between px-1">
+          <span className="text-xs font-semibold uppercase tracking-wide text-(--color-text-muted)">
+            Members
+          </span>
           <button
             type="button"
             onClick={() => setShowNewChannel((v) => !v)}
             title="New channel"
-            className="rounded-md p-1 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+            className="rounded-md p-1 text-(--color-text-muted) hover:bg-black/[.06] dark:hover:bg-white/[.08]"
           >
-            <Add01Icon size={15} strokeWidth={1.8} />
+            <Add01Icon size={14} strokeWidth={1.8} />
           </button>
         </div>
 
@@ -113,127 +165,114 @@ export default function ChatPage() {
               autoFocus
               value={newChannelName}
               onChange={(e) => setNewChannelName(e.target.value)}
-              placeholder="Channel name"
+              placeholder="New channel name…"
               className="w-full rounded-md border border-(--color-border) bg-(--color-canvas) px-2 py-1 text-sm outline-none"
             />
           </form>
         )}
 
-        <div className="flex flex-col gap-0.5">
-          {channels
-            .filter((c) => !c.isDM)
-            .map((c) => (
+        <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto">
+          {filteredMembers.map((m) => {
+            const dm = dmChannelFor(m._id);
+            const isActive = dm && dm._id === activeChannelId;
+            return (
               <button
-                key={c._id}
+                key={m._id}
                 type="button"
-                onClick={() => setActiveChannelId(c._id)}
-                className={`flex items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-sm ${
-                  c._id === activeChannelId
-                    ? "bg-black/5 dark:bg-white/10"
-                    : "text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+                onClick={() => handleStartDM(m._id)}
+                className={`flex items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm transition-colors ${
+                  isActive
+                    ? "bg-black/[.06] font-medium dark:bg-white/[.08]"
+                    : "text-(--color-text-muted) hover:bg-black/[.04] dark:hover:bg-white/[.06]"
                 }`}
               >
-                <HashtagIcon size={14} strokeWidth={1.8} />
-                <span className="truncate">{channelLabel(c, currentUser?._id)}</span>
+                <Avatar name={m.name} size={26} />
+                <span className="min-w-0 flex-1 truncate">{m.name}</span>
               </button>
-            ))}
-        </div>
-
-        <div className="mt-4 mb-2 px-1 text-xs font-semibold uppercase text-(--color-text-muted)">
-          Direct messages
-        </div>
-        <div className="flex flex-col gap-0.5">
-          {channels
-            .filter((c) => c.isDM)
-            .map((c) => (
-              <button
-                key={c._id}
-                type="button"
-                onClick={() => setActiveChannelId(c._id)}
-                className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${
-                  c._id === activeChannelId
-                    ? "bg-black/5 dark:bg-white/10"
-                    : "text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
-                }`}
-              >
-                <Avatar name={channelLabel(c, currentUser?._id)} size={18} />
-                <span className="truncate">{channelLabel(c, currentUser?._id)}</span>
-              </button>
-            ))}
-        </div>
-
-        <div className="mt-4 mb-2 px-1 text-xs font-semibold uppercase text-(--color-text-muted)">
-          Members
-        </div>
-        <div className="flex flex-col gap-0.5">
-          {members.map((m) => (
-            <button
-              key={m._id}
-              type="button"
-              onClick={() => handleStartDM(m._id)}
-              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
-            >
-              <Avatar name={m.name} size={18} />
-              <span className="truncate">{m.name}</span>
-            </button>
-          ))}
+            );
+          })}
+          {filteredMembers.length === 0 && (
+            <div className="px-2 py-4 text-center text-xs text-(--color-text-muted)">No members found.</div>
+          )}
         </div>
       </div>
 
+      {/* Chat surface — centered thread + pill composer, Notion-AI style */}
       <div className="flex min-w-0 flex-1 flex-col">
         {activeChannel ? (
           <>
-            <div className="border-b border-(--color-border) px-4 py-3 text-sm font-medium">
-              {activeChannel.isDM ? "" : "# "}
-              {channelLabel(activeChannel, currentUser?._id)}
+            <div className="flex items-center gap-2 border-b border-(--color-border) px-6 py-3.5">
+              {activeChannel.isDM ? (
+                <Avatar
+                  name={channelLabel(activeChannel, currentUser?._id)}
+                  size={22}
+                />
+              ) : (
+                <HashtagIcon size={16} strokeWidth={1.8} className="text-(--color-text-muted)" />
+              )}
+              <span className="text-sm font-semibold">{channelLabel(activeChannel, currentUser?._id)}</span>
             </div>
 
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3">
-              <div className="flex flex-col gap-3">
-                {messages.map((m) => (
-                  <div key={m._id} className="flex items-start gap-2">
-                    <Avatar name={m.author?.name} size={26} />
-                    <div className="min-w-0">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-sm font-medium">{m.author?.name ?? "Unknown"}</span>
-                        <span className="text-[11px] text-(--color-text-muted)">
-                          {new Date(m.createdAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
+            <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
+              <div className="mx-auto flex max-w-2xl flex-col gap-5">
+                {messages.map((m) => {
+                  const isMine = m.author?._id === currentUser?._id;
+                  return isMine ? (
+                    <div key={m._id} className="flex justify-end">
+                      <div className="max-w-[75%] rounded-2xl rounded-tr-sm bg-(--color-accent) px-4 py-2.5 text-sm text-white">
+                        <div className="whitespace-pre-wrap">{m.body}</div>
+                        <div className="mt-1 text-right text-[10px] text-white/70">
+                          {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </div>
                       </div>
-                      <div className="text-sm whitespace-pre-wrap">{m.body}</div>
                     </div>
-                  </div>
-                ))}
+                  ) : (
+                    <div key={m._id} className="flex items-start gap-2.5">
+                      <Avatar name={m.author?.name} size={24} />
+                      <div className="min-w-0 max-w-[75%]">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xs font-semibold">{m.author?.name ?? "Unknown"}</span>
+                          <span className="text-[10px] text-(--color-text-muted)">
+                            {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+                        <div className="text-sm whitespace-pre-wrap">{m.body}</div>
+                      </div>
+                    </div>
+                  );
+                })}
                 {messages.length === 0 && (
-                  <div className="py-8 text-center text-sm text-(--color-text-muted)">
-                    No messages yet. Say hello!
+                  <div className="py-16 text-center text-sm text-(--color-text-muted)">
+                    No messages yet. Say hello 👋
                   </div>
                 )}
               </div>
             </div>
 
-            <form onSubmit={handleSend} className="flex items-center gap-2 border-t border-(--color-border) p-3">
-              <input
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                placeholder="Message…"
-                className="flex-1 rounded-md border border-(--color-border) bg-(--color-canvas) px-3 py-1.5 text-sm outline-none"
-              />
-              <button
-                type="submit"
-                disabled={!draft.trim()}
-                className="flex items-center justify-center rounded-md bg-(--color-accent) p-2 text-white disabled:opacity-40"
+            <div className="px-6 pb-6">
+              <form
+                onSubmit={handleSend}
+                className="mx-auto flex max-w-2xl items-center gap-2 rounded-2xl border border-(--color-border) bg-(--color-canvas) px-3 py-2.5 shadow-sm"
               >
-                <SentIcon size={15} strokeWidth={1.8} />
-              </button>
-            </form>
+                <input
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  placeholder="Message…"
+                  className="flex-1 border-none bg-transparent text-sm outline-none placeholder:text-(--color-text-muted)"
+                />
+                <button
+                  type="submit"
+                  disabled={!draft.trim()}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-(--color-accent) text-white disabled:opacity-30"
+                >
+                  <SentIcon size={14} strokeWidth={1.8} />
+                </button>
+              </form>
+            </div>
           </>
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-(--color-text-muted)">
-            Select or start a conversation.
+            Select a person to start a conversation.
           </div>
         )}
       </div>
