@@ -38,3 +38,8 @@ export async function markChannelRead(channelId) {
   const { data } = await api.post(`/chat/channels/${channelId}/read`);
   return data;
 }
+
+export async function togglePinMessage(messageId) {
+  const { data } = await api.post(`/chat/messages/${messageId}/pin`);
+  return data.message;
+}

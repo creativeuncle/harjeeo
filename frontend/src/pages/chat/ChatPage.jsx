@@ -8,8 +8,10 @@ import {
   ArrowTurnBackwardIcon,
   Tick01Icon,
   Tick02Icon,
+  PinIcon,
+  Cancel01Icon,
 } from "hugeicons-react";
-import { listMessages, sendMessage, toggleReaction, markChannelRead } from "@/lib/chat";
+import { listMessages, sendMessage, toggleReaction, togglePinMessage, markChannelRead } from "@/lib/chat";
 import { useAuthStore } from "@/store/authStore";
 import { useChatStore } from "@/store/chatStore";
 import { getSocket } from "@/lib/socket";
@@ -173,7 +175,7 @@ function StatusTicks({ message, currentUserId }) {
   );
 }
 
-function MessageRow({ message, isMine, currentUser, onReply, onReact }) {
+function MessageRow({ message, isMine, currentUser, onReply, onReact, onPin }) {
   const reactTriggerRef = useRef(null);
   const [reactOpen, setReactOpen] = useState(false);
 
@@ -200,6 +202,16 @@ function MessageRow({ message, isMine, currentUser, onReply, onReact }) {
       >
         <ArrowTurnBackwardIcon size={13} strokeWidth={1.8} />
       </button>
+      <button
+        type="button"
+        onClick={() => onPin(message._id)}
+        title={message.pinned ? "Unpin" : "Pin"}
+        className={`flex h-6 w-6 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 ${
+          message.pinned ? "text-amber-500" : "text-(--color-text-muted)"
+        }`}
+      >
+        <PinIcon size={13} strokeWidth={1.8} className={message.pinned ? "fill-current" : ""} />
+      </button>
       <ReactionPicker
         triggerRef={reactTriggerRef}
         open={reactOpen}
@@ -211,7 +223,7 @@ function MessageRow({ message, isMine, currentUser, onReply, onReact }) {
 
   if (isMine) {
     return (
-      <div className="group flex items-center justify-end gap-1">
+      <div id={`msg-${message._id}`} className="group flex items-center justify-end gap-1">
         {toolbar}
         <div className="max-w-[75%]">
           <div className="rounded-2xl rounded-tr-sm bg-(--color-accent) px-4 py-2.5 text-sm text-white">
@@ -234,7 +246,7 @@ function MessageRow({ message, isMine, currentUser, onReply, onReact }) {
   }
 
   return (
-    <div className="group flex items-start gap-2.5">
+    <div id={`msg-${message._id}`} className="group flex items-start gap-2.5">
       <Avatar name={message.author?.name} size={24} />
       <div className="min-w-0 max-w-[75%] flex-1">
         <div className="flex items-baseline gap-2">
@@ -251,6 +263,51 @@ function MessageRow({ message, isMine, currentUser, onReply, onReact }) {
         />
       </div>
       {toolbar}
+    </div>
+  );
+}
+
+function PinnedBar({ messages, onJumpTo, onUnpin }) {
+  const pinned = messages.filter((m) => m.pinned);
+  const [open, setOpen] = useState(false);
+  if (pinned.length === 0) return null;
+
+  return (
+    <div className="border-b border-(--color-border) bg-amber-500/5 px-6 py-2">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400"
+      >
+        <PinIcon size={13} strokeWidth={1.8} className="fill-current" />
+        {pinned.length} pinned message{pinned.length > 1 ? "s" : ""}
+      </button>
+      {open && (
+        <div className="mt-2 flex flex-col gap-1">
+          {pinned.map((m) => (
+            <div
+              key={m._id}
+              className="flex items-center gap-2 rounded-md px-2 py-1 text-xs hover:bg-black/5 dark:hover:bg-white/10"
+            >
+              <button
+                type="button"
+                onClick={() => onJumpTo(m._id)}
+                className="min-w-0 flex-1 truncate text-left"
+              >
+                <span className="font-medium">{m.author?.name}: </span>
+                {m.body || m.attachment?.name || "Attachment"}
+              </button>
+              <button
+                type="button"
+                onClick={() => onUnpin(m._id)}
+                className="shrink-0 rounded-full p-1 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+              >
+                <Cancel01Icon size={12} strokeWidth={1.8} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -282,6 +339,10 @@ export default function ChatPage() {
       if (channelId !== activeChannelId) return;
       setMessages((prev) => prev.map((m) => (m._id === message._id ? message : m)));
     }
+    function handlePinned({ channelId, message }) {
+      if (channelId !== activeChannelId) return;
+      setMessages((prev) => prev.map((m) => (m._id === message._id ? message : m)));
+    }
     function handleRead({ channelId, userId }) {
       if (channelId !== activeChannelId) return;
       setMessages((prev) =>
@@ -295,12 +356,14 @@ export default function ChatPage() {
 
     socket.on("message:new", handleNew);
     socket.on("message:reaction", handleReaction);
+    socket.on("message:pinned", handlePinned);
     socket.on("message:read", handleRead);
 
     return () => {
       socket.emit("leave_channel", activeChannelId);
       socket.off("message:new", handleNew);
       socket.off("message:reaction", handleReaction);
+      socket.off("message:pinned", handlePinned);
       socket.off("message:read", handleRead);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -325,6 +388,15 @@ export default function ChatPage() {
     setMessages((prev) => prev.map((m) => (m._id === message._id ? message : m)));
   }
 
+  async function handlePin(messageId) {
+    const message = await togglePinMessage(messageId);
+    setMessages((prev) => prev.map((m) => (m._id === message._id ? message : m)));
+  }
+
+  function handleJumpTo(messageId) {
+    document.getElementById(`msg-${messageId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
   return (
     <div className="flex h-full flex-col">
       {activeChannel ? (
@@ -338,6 +410,8 @@ export default function ChatPage() {
             <span className="text-sm font-semibold">{channelLabel(activeChannel, currentUser?._id)}</span>
           </div>
 
+          <PinnedBar messages={messages} onJumpTo={handleJumpTo} onUnpin={handlePin} />
+
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
             <div className="mx-auto flex max-w-2xl flex-col gap-5">
               {messages.map((m) => (
@@ -348,6 +422,7 @@ export default function ChatPage() {
                   currentUser={currentUser}
                   onReply={setReplyingTo}
                   onReact={handleReact}
+                  onPin={handlePin}
                 />
               ))}
               {messages.length === 0 && (

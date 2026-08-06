@@ -6,6 +6,7 @@ import {
   TypeCursorIcon,
   Calendar03Icon,
   Location01Icon,
+  PinIcon,
 } from "hugeicons-react";
 import { listNotes, createNote, updateNote } from "@/lib/notes";
 import DatePicker from "@/components/ui/DatePicker";
@@ -70,6 +71,7 @@ export default function NotesListPage() {
           <table className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-(--color-border) text-left text-(--color-text-muted)">
+                <th className="w-8 py-2 pr-2" />
                 {COLUMNS.map((col) => (
                   <th key={col.key} className="whitespace-nowrap py-2 pr-4 font-medium">
                     <span className="flex items-center gap-1.5">
@@ -84,8 +86,24 @@ export default function NotesListPage() {
               {notes.map((note) => (
                 <tr
                   key={note._id}
-                  className="border-b border-(--color-border) hover:bg-black/[.02] dark:hover:bg-white/[.03]"
+                  className={`group border-b border-(--color-border) hover:bg-black/[.02] dark:hover:bg-white/[.03] ${
+                    note.pinned ? "bg-amber-500/5" : ""
+                  }`}
                 >
+                  <td className="py-2.5 pr-2" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      onClick={() => patchNote(note._id, { pinned: !note.pinned })}
+                      title={note.pinned ? "Unpin" : "Pin"}
+                      className={`flex h-6 w-6 items-center justify-center rounded-md ${
+                        note.pinned
+                          ? "text-amber-500"
+                          : "text-(--color-text-muted) opacity-0 hover:bg-black/5 group-hover:opacity-100 dark:hover:bg-white/10"
+                      }`}
+                    >
+                      <PinIcon size={14} strokeWidth={1.8} className={note.pinned ? "fill-current" : ""} />
+                    </button>
+                  </td>
                   <td
                     onClick={() => navigate(`/notes/${note._id}`)}
                     className="cursor-pointer whitespace-nowrap py-2.5 pr-4"

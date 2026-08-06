@@ -202,6 +202,29 @@ export const toggleReaction = asyncHandler(async (req, res) => {
     .emit("message:reaction", { channelId: String(message.channel), message });
 });
 
+export const togglePinMessage = asyncHandler(async (req, res) => {
+  const message = await Message.findById(req.params.messageId);
+  if (!message) {
+    res.status(404);
+    throw new Error("Message not found");
+  }
+  const channel = await Channel.findById(message.channel);
+  if (!channel || !channel.members.some((m) => String(m) === String(req.user._id))) {
+    res.status(403);
+    throw new Error("You are not a member of this channel");
+  }
+
+  message.pinned = !message.pinned;
+  await message.save();
+  await message.populate(MESSAGE_POPULATE);
+
+  res.json({ message });
+
+  getIO()
+    ?.to(String(message.channel))
+    .emit("message:pinned", { channelId: String(message.channel), message });
+});
+
 export const markChannelRead = asyncHandler(async (req, res) => {
   const channel = await requireChannelMembership(req, res);
 

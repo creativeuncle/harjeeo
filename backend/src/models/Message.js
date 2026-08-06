@@ -28,6 +28,7 @@ const messageSchema = new mongoose.Schema(
     ],
     deliveredTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    pinned: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

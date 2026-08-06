@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Delete02Icon, Calendar03Icon, Location01Icon } from "hugeicons-react";
+import { Delete02Icon, Calendar03Icon, Location01Icon, PinIcon } from "hugeicons-react";
 import { getNote, updateNote, deleteNote } from "@/lib/notes";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import IconPicker from "@/components/ui/IconPicker";
@@ -72,6 +72,16 @@ export default function NoteDetailPage() {
           {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
         </span>
         <div className="flex items-center gap-1 print:hidden">
+          <button
+            type="button"
+            onClick={() => patchField("pinned", !note.pinned)}
+            title={note.pinned ? "Unpin" : "Pin"}
+            className={`rounded-md p-1.5 hover:bg-black/5 dark:hover:bg-white/10 ${
+              note.pinned ? "text-amber-500" : "text-(--color-text-muted)"
+            }`}
+          >
+            <PinIcon size={16} strokeWidth={1.8} className={note.pinned ? "fill-current" : ""} />
+          </button>
           <ExportMenu title={note.title} content={note.content} />
           <SharePopover
             isPublic={note.isPublic}

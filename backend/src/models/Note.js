@@ -8,6 +8,7 @@ const noteSchema = new mongoose.Schema(
     place: { type: String, default: "" },
     content: { type: mongoose.Schema.Types.Mixed, default: null },
     isPublic: { type: Boolean, default: false },
+    pinned: { type: Boolean, default: false },
     ydoc: { type: Buffer, default: null, select: false },
     deletedAt: { type: Date, default: null },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },

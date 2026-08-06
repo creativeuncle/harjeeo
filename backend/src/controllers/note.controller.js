@@ -2,7 +2,7 @@ import asyncHandler from "express-async-handler";
 import Note from "../models/Note.js";
 import { requireMembership } from "../utils/workspaceAuth.js";
 
-const ALLOWED_UPDATE_FIELDS = ["title", "icon", "date", "place", "content", "isPublic"];
+const ALLOWED_UPDATE_FIELDS = ["title", "icon", "date", "place", "content", "isPublic", "pinned"];
 
 export const listNotes = asyncHandler(async (req, res) => {
   await requireMembership(res, req.query.workspaceId, req.user._id);
@@ -10,7 +10,7 @@ export const listNotes = asyncHandler(async (req, res) => {
     workspace: req.query.workspaceId,
     owner: req.user._id,
     deletedAt: null,
-  }).sort({ createdAt: -1 });
+  }).sort({ pinned: -1, createdAt: -1 });
   res.json({ notes });
 });
 
