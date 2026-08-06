@@ -12,6 +12,7 @@ import {
   HashtagIcon,
   Logout01Icon,
   Delete02Icon,
+  DashboardSquare01Icon,
 } from "hugeicons-react";
 import { api } from "@/lib/api";
 import { disconnectSocket } from "@/lib/socket";
@@ -31,6 +32,7 @@ function channelLabel(channel, currentUserId) {
 }
 
 const teamspaceLinks = [
+  { to: "/dashboard", label: "Dashboard", icon: DashboardSquare01Icon },
   { to: "/projects", label: "Projects", icon: Target02Icon },
   { to: "/tasks", label: "Tasks", icon: Task01Icon },
   { to: "/meetings", label: "Meetings", icon: Calendar03Icon },

@@ -21,6 +21,7 @@ import publicRoutes from "./routes/public.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
 import trashRoutes from "./routes/trash.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -50,6 +51,7 @@ app.use("/api/public", publicRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/trash", trashRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
