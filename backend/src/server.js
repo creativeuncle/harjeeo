@@ -11,6 +11,7 @@ import { hocuspocus } from "./collab.js";
 import { migrateWorkspaces, migrateLegacyProjectLeads } from "./utils/migrateWorkspaces.js";
 import { scheduleDueDateReminders } from "./utils/dueDateReminders.js";
 import { schedulePurgeTrash } from "./utils/purgeTrash.js";
+import { schedulePurgeAttachments } from "./utils/purgeAttachments.js";
 
 async function start() {
   await connectDB();
@@ -18,6 +19,7 @@ async function start() {
   await migrateLegacyProjectLeads();
   scheduleDueDateReminders();
   schedulePurgeTrash();
+  schedulePurgeAttachments();
 
   const server = http.createServer(app);
 
