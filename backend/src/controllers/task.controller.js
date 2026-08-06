@@ -5,6 +5,7 @@ import { requireMembership } from "../utils/workspaceAuth.js";
 import { notify } from "../utils/notify.js";
 import { newlyMentionedIds } from "../utils/mentions.js";
 import { logActivity } from "../utils/activity.js";
+import { maybeSnapshotContent } from "../utils/versionSnapshot.js";
 
 const STATUS_LABELS = {
   not_started: "Not started",
@@ -71,6 +72,15 @@ export const updateTask = asyncHandler(async (req, res) => {
   await requireMembership(res, task.workspace, req.user._id);
 
   const previousContent = task.content;
+
+  if ("content" in req.body) {
+    maybeSnapshotContent({
+      targetType: "task",
+      targetId: task._id,
+      content: previousContent,
+      userId: req.user._id,
+    }).catch((err) => console.error("Failed to snapshot task content:", err));
+  }
 
   if ("title" in req.body) task.title = req.body.title;
   if ("content" in req.body) task.content = req.body.content;

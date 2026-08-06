@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Note from "../models/Note.js";
 import { requireMembership } from "../utils/workspaceAuth.js";
+import { maybeSnapshotContent } from "../utils/versionSnapshot.js";
 
 const ALLOWED_UPDATE_FIELDS = ["title", "icon", "date", "place", "content", "isPublic", "pinned"];
 
@@ -55,6 +56,15 @@ export const updateNote = asyncHandler(async (req, res) => {
   const updates = {};
   for (const field of ALLOWED_UPDATE_FIELDS) {
     if (field in req.body) updates[field] = req.body[field];
+  }
+
+  if ("content" in updates) {
+    maybeSnapshotContent({
+      targetType: "note",
+      targetId: existing._id,
+      content: existing.content,
+      userId: req.user._id,
+    }).catch((err) => console.error("Failed to snapshot note content:", err));
   }
 
   const note = await Note.findByIdAndUpdate(req.params.id, updates, {

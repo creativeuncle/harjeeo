@@ -7,6 +7,7 @@ import Note from "./models/Note.js";
 import WorkspaceMember from "./models/WorkspaceMember.js";
 import { verifyAccessToken } from "./utils/tokens.js";
 import { getCollabSchema } from "./collabSchema.js";
+import { maybeSnapshotContent } from "./utils/versionSnapshot.js";
 
 const MODELS = { project: Project, task: Task, note: Note };
 
@@ -69,7 +70,7 @@ export const hocuspocus = new Hocuspocus({
   },
 
   async onStoreDocument({ documentName, document }) {
-    const { Model, id } = parseDocumentName(documentName);
+    const { Model, id, type } = parseDocumentName(documentName);
     if (!Model || !id) return;
 
     const update = Y.encodeStateAsUpdate(document);
@@ -79,6 +80,18 @@ export const hocuspocus = new Hocuspocus({
       contentJSON = yXmlFragmentToProsemirrorJSON(document.getXmlFragment("default"), schema);
     } catch (err) {
       console.error(`Failed to snapshot collab doc ${documentName} to JSON:`, err.message);
+    }
+
+    if (contentJSON) {
+      const existing = await Model.findById(id).select("content");
+      if (existing) {
+        maybeSnapshotContent({
+          targetType: type,
+          targetId: id,
+          content: existing.content,
+          userId: null,
+        }).catch((err) => console.error(`Failed to snapshot collab doc ${documentName}:`, err.message));
+      }
     }
 
     const update$ = { ydoc: Buffer.from(update) };

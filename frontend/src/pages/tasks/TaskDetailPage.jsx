@@ -26,6 +26,7 @@ import RichTextEditor from "@/components/editor/RichTextEditor";
 import CommentSection from "@/components/ui/CommentSection";
 import SharePopover from "@/components/ui/SharePopover";
 import ExportMenu from "@/components/ui/ExportMenu";
+import VersionHistoryPopover from "@/components/ui/VersionHistoryPopover";
 import DatePicker from "@/components/ui/DatePicker";
 import TasksPicker from "@/pages/projects/TasksPicker";
 import AddPropertyMenu from "./AddPropertyMenu";
@@ -187,6 +188,11 @@ export default function TaskDetailPage() {
           {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
         </span>
         <div className="flex items-center gap-1 print:hidden">
+          <VersionHistoryPopover
+            targetType="task"
+            targetId={id}
+            onRestore={(target) => setTask((prev) => ({ ...prev, content: target.content }))}
+          />
           <ExportMenu title={task.title} content={task.content} />
           <SharePopover
             isPublic={task.isPublic}

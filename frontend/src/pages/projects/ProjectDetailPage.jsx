@@ -20,6 +20,7 @@ import SelectPicker from "@/components/ui/SelectPicker";
 import CommentSection from "@/components/ui/CommentSection";
 import SharePopover from "@/components/ui/SharePopover";
 import ExportMenu from "@/components/ui/ExportMenu";
+import VersionHistoryPopover from "@/components/ui/VersionHistoryPopover";
 import ManageAccessPopover from "@/components/ui/ManageAccessPopover";
 import LeadPicker from "./LeadPicker";
 import TasksPicker from "./TasksPicker";
@@ -148,6 +149,11 @@ export default function ProjectDetailPage() {
               onChange={setProject}
             />
           )}
+          <VersionHistoryPopover
+            targetType="project"
+            targetId={id}
+            onRestore={(target) => setProject((prev) => ({ ...prev, content: target.content }))}
+          />
           <ExportMenu title={project.title} content={project.content} />
           <SharePopover
             isPublic={project.isPublic}

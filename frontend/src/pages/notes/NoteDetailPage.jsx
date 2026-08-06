@@ -8,6 +8,7 @@ import DatePicker from "@/components/ui/DatePicker";
 import PlacePicker from "@/components/ui/PlacePicker";
 import SharePopover from "@/components/ui/SharePopover";
 import ExportMenu from "@/components/ui/ExportMenu";
+import VersionHistoryPopover from "@/components/ui/VersionHistoryPopover";
 
 function toDateInputValue(d) {
   if (!d) return null;
@@ -82,6 +83,11 @@ export default function NoteDetailPage() {
           >
             <PinIcon size={16} strokeWidth={1.8} className={note.pinned ? "fill-current" : ""} />
           </button>
+          <VersionHistoryPopover
+            targetType="note"
+            targetId={id}
+            onRestore={(target) => setNote((prev) => ({ ...prev, content: target.content }))}
+          />
           <ExportMenu title={note.title} content={note.content} />
           <SharePopover
             isPublic={note.isPublic}

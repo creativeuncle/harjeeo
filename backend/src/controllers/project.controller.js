@@ -5,6 +5,7 @@ import { projectRoleFor, canEditProject } from "../utils/projectPermissions.js";
 import { notify } from "../utils/notify.js";
 import { newlyMentionedIds } from "../utils/mentions.js";
 import { logActivity } from "../utils/activity.js";
+import { maybeSnapshotContent } from "../utils/versionSnapshot.js";
 
 const ALLOWED_UPDATE_FIELDS = [
   "title",
@@ -90,6 +91,15 @@ export const updateProject = asyncHandler(async (req, res) => {
   }
   if ("endDate" in updates && String(updates.endDate) !== String(existing.endDate)) {
     updates.dueReminderSentAt = null;
+  }
+
+  if ("content" in updates) {
+    maybeSnapshotContent({
+      targetType: "project",
+      targetId: existing._id,
+      content: existing.content,
+      userId: req.user._id,
+    }).catch((err) => console.error("Failed to snapshot project content:", err));
   }
 
   const previousLeads = existing.leads.map(String);
