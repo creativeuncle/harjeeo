@@ -15,7 +15,10 @@ export default function AddPropertyMenu({ onCreate }) {
   }, [query]);
 
   function handleSelectType(type) {
-    const name = window.prompt(`Property name for "${PROPERTY_TYPE_META[type].label}"`);
+    const name = window.prompt(
+      `Name this ${PROPERTY_TYPE_META[type].label} property:`,
+      PROPERTY_TYPE_META[type].label
+    );
     if (!name) return;
     onCreate({ name, type });
     setOpen(false);

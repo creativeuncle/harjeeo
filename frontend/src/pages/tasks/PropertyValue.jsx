@@ -2,7 +2,7 @@ import { useAuthStore } from "@/store/authStore";
 import { OPTION_COLOR_CLASSES, nextOptionColor } from "@/lib/propertyTypes";
 
 const inputClass =
-  "w-full rounded-md border border-transparent bg-transparent px-2 py-1.5 text-sm outline-none hover:border-(--color-border) focus:border-(--color-border)";
+  "w-full rounded-md border border-(--color-border) bg-(--color-canvas) px-2 py-1.5 text-sm outline-none focus:border-(--color-accent)";
 
 function OptionPill({ option }) {
   return (
