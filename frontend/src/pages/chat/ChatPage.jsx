@@ -5,6 +5,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useChatStore } from "@/store/chatStore";
 import { getSocket } from "@/lib/socket";
 import Avatar from "@/components/ui/Avatar";
+import VoiceMessagePlayer from "@/components/ui/VoiceMessagePlayer";
 import ChatComposer from "./ChatComposer";
 
 function MessageAttachment({ attachment }) {
@@ -20,11 +21,7 @@ function MessageAttachment({ attachment }) {
     );
   }
   if (attachment.type === "audio") {
-    return (
-      <audio controls src={attachment.url} className="mt-1 h-9 max-w-full">
-        Your browser doesn't support audio playback.
-      </audio>
-    );
+    return <VoiceMessagePlayer url={attachment.url} />;
   }
   return (
     <a
