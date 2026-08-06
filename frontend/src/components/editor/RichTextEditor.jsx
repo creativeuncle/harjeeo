@@ -1,21 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import Collaboration from "@tiptap/extension-collaboration";
-import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import { baseExtensions } from "./extensions";
 import FormattingBubbleMenu from "./FormattingBubbleMenu";
 import { createCollabSession } from "@/lib/collab";
-import { useAuthStore } from "@/store/authStore";
 import "./editor.css";
-
-const CURSOR_COLORS = ["#f97316", "#8b5cf6", "#10b981", "#3b82f6", "#ec4899", "#eab308"];
-
-function colorForUser(id) {
-  let hash = 0;
-  for (const ch of id ?? "") hash = ch.charCodeAt(0) + ((hash << 5) - hash);
-  return CURSOR_COLORS[Math.abs(hash) % CURSOR_COLORS.length];
-}
 
 export default function RichTextEditor({
   content,
@@ -27,7 +17,6 @@ export default function RichTextEditor({
 }) {
   const mentionItemsRef = useRef(mentionItems);
   mentionItemsRef.current = mentionItems;
-  const currentUser = useAuthStore((s) => s.user);
 
   const getMentionItems = useMemo(
     () => (query) =>
@@ -80,18 +69,12 @@ export default function RichTextEditor({
     {
       extensions: [
         ...baseExtensions({ placeholder, getMentionItems, collab: !!session }),
-        ...(session
-          ? [
-              Collaboration.configure({ document: session.ydoc }),
-              CollaborationCursor.configure({
-                provider: session.provider,
-                user: {
-                  name: currentUser?.name ?? "Anonymous",
-                  color: colorForUser(currentUser?._id),
-                },
-              }),
-            ]
-          : []),
+        // @tiptap/extension-collaboration-cursor's only 3.x release (3.0.0)
+        // is broken against @tiptap/core 3.x — it crashes every editor mount
+        // with "Cannot read properties of undefined (reading 'doc')" because
+        // its yCursorPlugin looks up ySyncPlugin state that isn't there yet.
+        // Live cursors are dropped; core Yjs sync (Collaboration) is unaffected.
+        ...(session ? [Collaboration.configure({ document: session.ydoc })] : []),
       ],
       content: session ? undefined : content,
       editable,
