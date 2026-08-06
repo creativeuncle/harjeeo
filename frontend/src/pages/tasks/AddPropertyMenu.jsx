@@ -47,7 +47,7 @@ export default function AddPropertyMenu({ onCreate }) {
                 className="w-full bg-transparent outline-none"
               />
             </div>
-            <div className="flex max-h-72 flex-col gap-0.5 overflow-y-auto">
+            <div className="thin-scrollbar flex max-h-72 flex-col gap-0.5 overflow-y-auto">
               {filtered.map((type) => {
                 const Icon = PROPERTY_TYPE_META[type].icon;
                 return (
