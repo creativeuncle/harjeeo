@@ -131,13 +131,13 @@ export default function ChatPage() {
                     key={c._id}
                     type="button"
                     onClick={() => setActiveChannelId(c._id)}
-                    className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors ${
+                    className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
                       c._id === activeChannelId
-                        ? "bg-black/[.06] font-medium dark:bg-white/[.08]"
-                        : "text-(--color-text-muted) hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                        ? "bg-black/5 font-medium text-(--color-text) dark:bg-white/10"
+                        : "text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
                     }`}
                   >
-                    <HashtagIcon size={14} strokeWidth={1.8} />
+                    <HashtagIcon size={18} strokeWidth={1.8} />
                     <span className="truncate">{channelLabel(c, currentUser?._id)}</span>
                   </button>
                 ))}
@@ -171,7 +171,7 @@ export default function ChatPage() {
           </form>
         )}
 
-        <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto">
+        <div className="flex flex-col gap-0.5">
           {filteredMembers.map((m) => {
             const dm = dmChannelFor(m._id);
             const isActive = dm && dm._id === activeChannelId;
@@ -180,13 +180,13 @@ export default function ChatPage() {
                 key={m._id}
                 type="button"
                 onClick={() => handleStartDM(m._id)}
-                className={`flex items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm transition-colors ${
+                className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
                   isActive
-                    ? "bg-black/[.06] font-medium dark:bg-white/[.08]"
-                    : "text-(--color-text-muted) hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                    ? "bg-black/5 font-medium text-(--color-text) dark:bg-white/10"
+                    : "text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
                 }`}
               >
-                <Avatar name={m.name} size={26} />
+                <Avatar name={m.name} size={18} />
                 <span className="min-w-0 flex-1 truncate">{m.name}</span>
               </button>
             );
