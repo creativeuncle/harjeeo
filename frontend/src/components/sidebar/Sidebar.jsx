@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Task01Icon,
@@ -9,15 +9,25 @@ import {
   BookOpen01Icon,
   Note01Icon,
   Add01Icon,
+  HashtagIcon,
   Logout01Icon,
 } from "hugeicons-react";
 import { api } from "@/lib/api";
 import { disconnectSocket } from "@/lib/socket";
 import { createNote } from "@/lib/notes";
+import { listChannels, createChannel, getOrCreateDM } from "@/lib/chat";
+import { listMembers } from "@/lib/workspaces";
 import { useAuthStore } from "@/store/authStore";
 import { useWorkspaceStore } from "@/store/workspaceStore";
+import { useChatStore } from "@/store/chatStore";
 import Avatar from "@/components/ui/Avatar";
 import WorkspaceSwitcher from "./WorkspaceSwitcher";
+
+function channelLabel(channel, currentUserId) {
+  if (!channel.isDM) return channel.name || "Untitled channel";
+  const other = channel.members.find((m) => m._id !== currentUserId);
+  return other?.name ?? "Direct message";
+}
 
 const teamspaceLinks = [
   { to: "/projects", label: "Projects", icon: Target02Icon },
@@ -59,6 +69,51 @@ export default function Sidebar() {
   const clearSession = useAuthStore((s) => s.clearSession);
   const workspaceId = useWorkspaceStore((s) => s.currentId);
   const [creatingNote, setCreatingNote] = useState(false);
+  const [showNewChannel, setShowNewChannel] = useState(false);
+  const [newChannelName, setNewChannelName] = useState("");
+
+  const channels = useChatStore((s) => s.channels);
+  const setChannels = useChatStore((s) => s.setChannels);
+  const addChannel = useChatStore((s) => s.addChannel);
+  const chatMembers = useChatStore((s) => s.members);
+  const setChatMembers = useChatStore((s) => s.setMembers);
+  const activeChannelId = useChatStore((s) => s.activeChannelId);
+  const setActiveChannelId = useChatStore((s) => s.setActiveChannelId);
+
+  useEffect(() => {
+    if (!workspaceId) return;
+    listChannels(workspaceId).then((list) => {
+      setChannels(list);
+      setActiveChannelId((prev) => prev ?? list[0]?._id ?? null);
+    });
+    listMembers(workspaceId).then((data) =>
+      setChatMembers(data.members.map((m) => m.user).filter((u) => u && u._id !== user?._id))
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspaceId, user?._id]);
+
+  function dmChannelFor(userId) {
+    return channels.find((c) => c.isDM && c.members.some((m) => m._id === userId));
+  }
+
+  async function handleStartDM(userId) {
+    const channel = await getOrCreateDM(workspaceId, userId);
+    addChannel(channel);
+    setActiveChannelId(channel._id);
+  }
+
+  async function handleCreateChannel(e) {
+    e.preventDefault();
+    if (!newChannelName.trim()) return;
+    const channel = await createChannel(workspaceId, {
+      name: newChannelName.trim(),
+      memberIds: chatMembers.map((m) => m._id),
+    });
+    addChannel(channel);
+    setActiveChannelId(channel._id);
+    setNewChannelName("");
+    setShowNewChannel(false);
+  }
 
   async function handleLogout() {
     try {
@@ -117,6 +172,84 @@ export default function Sidebar() {
             ))}
           </nav>
         </>
+      )}
+
+      {isChatActive && (
+        <div className="mt-4 flex min-h-0 flex-1 flex-col overflow-y-auto">
+          {channels.filter((c) => !c.isDM).length > 0 && (
+            <>
+              <div className="px-2 text-xs font-medium text-(--color-text-muted)">Channels</div>
+              <nav className="mt-1 mb-3 flex flex-col gap-0.5">
+                {channels
+                  .filter((c) => !c.isDM)
+                  .map((c) => (
+                    <button
+                      key={c._id}
+                      type="button"
+                      onClick={() => setActiveChannelId(c._id)}
+                      className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
+                        c._id === activeChannelId
+                          ? "bg-black/5 font-medium text-(--color-text) dark:bg-white/10"
+                          : "text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+                      }`}
+                    >
+                      <HashtagIcon size={18} strokeWidth={1.8} />
+                      <span className="truncate">{channelLabel(c, user?._id)}</span>
+                    </button>
+                  ))}
+              </nav>
+            </>
+          )}
+
+          <div className="flex items-center justify-between px-2">
+            <span className="text-xs font-medium text-(--color-text-muted)">Members</span>
+            <button
+              type="button"
+              onClick={() => setShowNewChannel((v) => !v)}
+              title="New channel"
+              className="rounded-md p-1 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+            >
+              <Add01Icon size={14} strokeWidth={1.8} />
+            </button>
+          </div>
+
+          {showNewChannel && (
+            <form onSubmit={handleCreateChannel} className="mt-1 px-2">
+              <input
+                autoFocus
+                value={newChannelName}
+                onChange={(e) => setNewChannelName(e.target.value)}
+                placeholder="New channel name…"
+                className="w-full rounded-md border border-(--color-border) bg-(--color-canvas) px-2 py-1 text-sm outline-none"
+              />
+            </form>
+          )}
+
+          <nav className="mt-1 flex flex-col gap-0.5">
+            {chatMembers.map((m) => {
+              const dm = dmChannelFor(m._id);
+              const isActive = dm && dm._id === activeChannelId;
+              return (
+                <button
+                  key={m._id}
+                  type="button"
+                  onClick={() => handleStartDM(m._id)}
+                  className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
+                    isActive
+                      ? "bg-black/5 font-medium text-(--color-text) dark:bg-white/10"
+                      : "text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+                  }`}
+                >
+                  <Avatar name={m.name} size={18} />
+                  <span className="min-w-0 flex-1 truncate">{m.name}</span>
+                </button>
+              );
+            })}
+            {chatMembers.length === 0 && (
+              <div className="px-2 py-2 text-xs text-(--color-text-muted)">No other members yet.</div>
+            )}
+          </nav>
+        </div>
       )}
 
       <button
