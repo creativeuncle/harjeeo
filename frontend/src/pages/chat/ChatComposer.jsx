@@ -8,6 +8,7 @@ import {
   Mic01Icon,
   SentIcon,
   Cancel01Icon,
+  Doc01Icon,
 } from "hugeicons-react";
 import IconPicker from "@/components/ui/IconPicker";
 import Avatar from "@/components/ui/Avatar";
@@ -24,6 +25,7 @@ export default function ChatComposer({ onSend, replyingTo, onCancelReply }) {
   const [recording, setRecording] = useState(false);
   const [mentionOpen, setMentionOpen] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
+  const [pendingAttachment, setPendingAttachment] = useState(null);
 
   const attachTriggerRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -86,8 +88,8 @@ export default function ChatComposer({ onSend, replyingTo, onCancelReply }) {
     try {
       const isImage = file.type.startsWith("image/");
       const { url } = await uploadFile(file);
-      await onSend("", { url, type: isImage ? "image" : "file", name: file.name }, replyingTo?._id);
-      onCancelReply?.();
+      setPendingAttachment({ url, type: isImage ? "image" : "file", name: file.name });
+      requestAnimationFrame(() => inputRef.current?.focus());
     } catch (err) {
       window.alert(err.message);
     } finally {
@@ -114,8 +116,7 @@ export default function ChatComposer({ onSend, replyingTo, onCancelReply }) {
         try {
           const file = new File([blob], "voice-message.webm", { type: "audio/webm" });
           const { url } = await uploadFile(file);
-          await onSend("", { url, type: "audio", name: "Voice message" }, replyingTo?._id);
-          onCancelReply?.();
+          setPendingAttachment({ url, type: "audio", name: "Voice message" });
         } catch (err) {
           window.alert(err.message);
         } finally {
@@ -132,11 +133,13 @@ export default function ChatComposer({ onSend, replyingTo, onCancelReply }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!draft.trim() || uploading) return;
+    if ((!draft.trim() && !pendingAttachment) || uploading) return;
     const body = draft.trim();
+    const attachment = pendingAttachment;
     setDraft("");
+    setPendingAttachment(null);
     setMentionOpen(false);
-    await onSend(body, null, replyingTo?._id);
+    await onSend(body, attachment, replyingTo?._id);
     onCancelReply?.();
   }
 
@@ -162,6 +165,37 @@ export default function ChatComposer({ onSend, replyingTo, onCancelReply }) {
           <button
             type="button"
             onClick={onCancelReply}
+            className="shrink-0 rounded-full p-1 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            <Cancel01Icon size={14} strokeWidth={1.8} />
+          </button>
+        </div>
+      )}
+
+      {pendingAttachment && (
+        <div className="flex items-center gap-2 rounded-lg bg-black/5 px-2.5 py-1.5 dark:bg-white/10">
+          {pendingAttachment.type === "image" ? (
+            <img
+              src={pendingAttachment.url}
+              alt={pendingAttachment.name}
+              className="h-10 w-10 shrink-0 rounded-md object-cover"
+            />
+          ) : (
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-black/5 dark:bg-white/10">
+              {pendingAttachment.type === "audio" ? (
+                <Mic01Icon size={16} strokeWidth={1.8} />
+              ) : (
+                <Doc01Icon size={16} strokeWidth={1.8} />
+              )}
+            </span>
+          )}
+          <div className="min-w-0 flex-1 text-xs text-(--color-text-muted)">
+            <div className="truncate font-medium text-(--color-text)">{pendingAttachment.name}</div>
+            <div>Ready to send</div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setPendingAttachment(null)}
             className="shrink-0 rounded-full p-1 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
           >
             <Cancel01Icon size={14} strokeWidth={1.8} />
@@ -236,7 +270,7 @@ export default function ChatComposer({ onSend, replyingTo, onCancelReply }) {
 
         <button
           type="submit"
-          disabled={!draft.trim() || uploading}
+          disabled={(!draft.trim() && !pendingAttachment) || uploading}
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-(--color-accent) text-white disabled:opacity-30"
         >
           <SentIcon size={14} strokeWidth={1.8} />
