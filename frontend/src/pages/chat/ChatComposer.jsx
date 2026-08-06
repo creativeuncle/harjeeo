@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Add01Icon, Attachment01Icon, AtIcon, SmileIcon, Mic01Icon, SentIcon } from "hugeicons-react";
 import IconPicker from "@/components/ui/IconPicker";
 import Avatar from "@/components/ui/Avatar";
-import { uploadToCloudinary } from "@/lib/cloudinary";
+import { uploadFile } from "@/lib/uploads";
 import { useChatStore } from "@/store/chatStore";
 
 export default function ChatComposer({ onSend }) {
@@ -77,7 +77,7 @@ export default function ChatComposer({ onSend }) {
     setUploading(true);
     try {
       const isImage = file.type.startsWith("image/");
-      const url = await uploadToCloudinary(file, isImage ? "image" : "raw");
+      const { url } = await uploadFile(file);
       await onSend("", { url, type: isImage ? "image" : "file", name: file.name });
     } catch (err) {
       window.alert(err.message);
@@ -104,7 +104,7 @@ export default function ChatComposer({ onSend }) {
         setUploading(true);
         try {
           const file = new File([blob], "voice-message.webm", { type: "audio/webm" });
-          const url = await uploadToCloudinary(file, "video");
+          const { url } = await uploadFile(file);
           await onSend("", { url, type: "audio", name: "Voice message" });
         } catch (err) {
           window.alert(err.message);
