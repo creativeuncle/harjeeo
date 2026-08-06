@@ -1,12 +1,33 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { HashtagIcon, Download04Icon, Doc01Icon } from "hugeicons-react";
-import { listMessages, sendMessage } from "@/lib/chat";
+import { createPortal } from "react-dom";
+import {
+  HashtagIcon,
+  Download04Icon,
+  Doc01Icon,
+  SmileIcon,
+  ArrowTurnBackwardIcon,
+  Tick01Icon,
+  Tick02Icon,
+} from "hugeicons-react";
+import { listMessages, sendMessage, toggleReaction, markChannelRead } from "@/lib/chat";
 import { useAuthStore } from "@/store/authStore";
 import { useChatStore } from "@/store/chatStore";
 import { getSocket } from "@/lib/socket";
 import Avatar from "@/components/ui/Avatar";
 import VoiceMessagePlayer from "@/components/ui/VoiceMessagePlayer";
 import ChatComposer from "./ChatComposer";
+
+const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+
+function channelLabel(channel, currentUserId) {
+  if (!channel.isDM) return channel.name || "Untitled channel";
+  const other = channel.members.find((m) => m._id !== currentUserId);
+  return other?.name ?? "Direct message";
+}
+
+function formatTime(date) {
+  return new Date(date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
 
 function MessageAttachment({ attachment }) {
   if (attachment.type === "image") {
@@ -37,10 +58,201 @@ function MessageAttachment({ attachment }) {
   );
 }
 
-function channelLabel(channel, currentUserId) {
-  if (!channel.isDM) return channel.name || "Untitled channel";
-  const other = channel.members.find((m) => m._id !== currentUserId);
-  return other?.name ?? "Direct message";
+function ReplyPreview({ replyTo, muted }) {
+  if (!replyTo) return null;
+  return (
+    <div
+      className={`mb-1.5 rounded-md border-l-2 px-2 py-1 text-xs ${
+        muted
+          ? "border-white/50 bg-white/10 text-white/80"
+          : "border-(--color-accent) bg-black/5 text-(--color-text-muted) dark:bg-white/10"
+      }`}
+    >
+      <div className={`font-medium ${muted ? "text-white" : "text-(--color-accent)"}`}>
+        {replyTo.author?.name ?? "Message"}
+      </div>
+      <div className="truncate">{replyTo.body || replyTo.attachment?.name || "Attachment"}</div>
+    </div>
+  );
+}
+
+function groupReactions(reactions, currentUserId) {
+  const map = new Map();
+  for (const r of reactions ?? []) {
+    if (!map.has(r.emoji)) map.set(r.emoji, { emoji: r.emoji, count: 0, mine: false });
+    const entry = map.get(r.emoji);
+    entry.count += 1;
+    if (String(r.user) === String(currentUserId)) entry.mine = true;
+  }
+  return Array.from(map.values());
+}
+
+function ReactionRow({ reactions, currentUserId, onToggle }) {
+  const grouped = groupReactions(reactions, currentUserId);
+  if (grouped.length === 0) return null;
+  return (
+    <div className="mt-1 flex flex-wrap gap-1">
+      {grouped.map((r) => (
+        <button
+          key={r.emoji}
+          type="button"
+          onClick={() => onToggle(r.emoji)}
+          className={`flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs ${
+            r.mine
+              ? "border-(--color-accent) bg-(--color-accent)/10"
+              : "border-(--color-border) bg-black/5 dark:bg-white/10"
+          }`}
+        >
+          <span>{r.emoji}</span>
+          <span className="text-(--color-text-muted)">{r.count}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ReactionPicker({ triggerRef, open, onClose, onPick }) {
+  const [position, setPosition] = useState(null);
+
+  useEffect(() => {
+    if (!open || !triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setPosition({ top: rect.bottom + 6, left: Math.min(rect.left, window.innerWidth - 260) });
+  }, [open, triggerRef]);
+
+  if (!open || !position) return null;
+
+  return createPortal(
+    <>
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div
+        style={position}
+        className="fixed z-50 flex items-center gap-1 rounded-full border border-(--color-border) bg-(--color-canvas) px-2 py-1.5 shadow-lg"
+      >
+        {QUICK_REACTIONS.map((emoji) => (
+          <button
+            key={emoji}
+            type="button"
+            onClick={() => {
+              onPick(emoji);
+              onClose();
+            }}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-base hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
+    </>,
+    document.body
+  );
+}
+
+function StatusTicks({ message, currentUserId }) {
+  const seen = (message.readBy ?? []).some((id) => String(id) !== String(currentUserId));
+  const delivered = (message.deliveredTo ?? []).some((id) => String(id) !== String(currentUserId));
+
+  if (seen) {
+    return (
+      <span className="relative inline-flex w-3.5 shrink-0 text-sky-300">
+        <Tick02Icon size={13} strokeWidth={2.4} />
+      </span>
+    );
+  }
+  if (delivered) {
+    return (
+      <span className="relative inline-flex w-3.5 shrink-0 text-white/70">
+        <Tick02Icon size={13} strokeWidth={2.4} />
+      </span>
+    );
+  }
+  return (
+    <span className="relative inline-flex w-3.5 shrink-0 text-white/70">
+      <Tick01Icon size={13} strokeWidth={2.4} />
+    </span>
+  );
+}
+
+function MessageRow({ message, isMine, currentUser, onReply, onReact }) {
+  const reactTriggerRef = useRef(null);
+  const [reactOpen, setReactOpen] = useState(false);
+
+  const toolbar = (
+    <div
+      className={`flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 ${
+        isMine ? "order-first" : ""
+      }`}
+    >
+      <button
+        ref={reactTriggerRef}
+        type="button"
+        onClick={() => setReactOpen(true)}
+        title="React"
+        className="flex h-6 w-6 items-center justify-center rounded-full text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+      >
+        <SmileIcon size={13} strokeWidth={1.8} />
+      </button>
+      <button
+        type="button"
+        onClick={() => onReply(message)}
+        title="Reply"
+        className="flex h-6 w-6 items-center justify-center rounded-full text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+      >
+        <ArrowTurnBackwardIcon size={13} strokeWidth={1.8} />
+      </button>
+      <ReactionPicker
+        triggerRef={reactTriggerRef}
+        open={reactOpen}
+        onClose={() => setReactOpen(false)}
+        onPick={(emoji) => onReact(message._id, emoji)}
+      />
+    </div>
+  );
+
+  if (isMine) {
+    return (
+      <div className="group flex items-center justify-end gap-1">
+        {toolbar}
+        <div className="max-w-[75%]">
+          <div className="rounded-2xl rounded-tr-sm bg-(--color-accent) px-4 py-2.5 text-sm text-white">
+            <ReplyPreview replyTo={message.replyTo} muted />
+            {message.body && <div className="whitespace-pre-wrap">{message.body}</div>}
+            {message.attachment && <MessageAttachment attachment={message.attachment} />}
+            <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-white/70">
+              {formatTime(message.createdAt)}
+              <StatusTicks message={message} currentUserId={currentUser?._id} />
+            </div>
+          </div>
+          <ReactionRow
+            reactions={message.reactions}
+            currentUserId={currentUser?._id}
+            onToggle={(emoji) => onReact(message._id, emoji)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group flex items-start gap-2.5">
+      <Avatar name={message.author?.name} size={24} />
+      <div className="min-w-0 max-w-[75%] flex-1">
+        <div className="flex items-baseline gap-2">
+          <span className="text-xs font-semibold">{message.author?.name ?? "Unknown"}</span>
+          <span className="text-[10px] text-(--color-text-muted)">{formatTime(message.createdAt)}</span>
+        </div>
+        <ReplyPreview replyTo={message.replyTo} />
+        {message.body && <div className="text-sm whitespace-pre-wrap">{message.body}</div>}
+        {message.attachment && <MessageAttachment attachment={message.attachment} />}
+        <ReactionRow
+          reactions={message.reactions}
+          currentUserId={currentUser?._id}
+          onToggle={(emoji) => onReact(message._id, emoji)}
+        />
+      </div>
+      {toolbar}
+    </div>
+  );
 }
 
 export default function ChatPage() {
@@ -49,11 +261,14 @@ export default function ChatPage() {
   const activeChannelId = useChatStore((s) => s.activeChannelId);
 
   const [messages, setMessages] = useState([]);
+  const [replyingTo, setReplyingTo] = useState(null);
   const scrollRef = useRef(null);
 
   useEffect(() => {
+    setReplyingTo(null);
     if (!activeChannelId) return;
     listMessages(activeChannelId).then(setMessages);
+    markChannelRead(activeChannelId);
 
     const socket = getSocket();
     socket.emit("join_channel", activeChannelId);
@@ -61,13 +276,34 @@ export default function ChatPage() {
     function handleNew({ channelId, message }) {
       if (channelId !== activeChannelId) return;
       setMessages((prev) => [...prev, message]);
+      if (message.author?._id !== currentUser?._id) markChannelRead(activeChannelId);
     }
+    function handleReaction({ channelId, message }) {
+      if (channelId !== activeChannelId) return;
+      setMessages((prev) => prev.map((m) => (m._id === message._id ? message : m)));
+    }
+    function handleRead({ channelId, userId }) {
+      if (channelId !== activeChannelId) return;
+      setMessages((prev) =>
+        prev.map((m) => ({
+          ...m,
+          readBy: m.readBy?.includes(userId) ? m.readBy : [...(m.readBy ?? []), userId],
+          deliveredTo: m.deliveredTo?.includes(userId) ? m.deliveredTo : [...(m.deliveredTo ?? []), userId],
+        }))
+      );
+    }
+
     socket.on("message:new", handleNew);
+    socket.on("message:reaction", handleReaction);
+    socket.on("message:read", handleRead);
 
     return () => {
       socket.emit("leave_channel", activeChannelId);
       socket.off("message:new", handleNew);
+      socket.off("message:reaction", handleReaction);
+      socket.off("message:read", handleRead);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChannelId]);
 
   useEffect(() => {
@@ -79,9 +315,14 @@ export default function ChatPage() {
     [channels, activeChannelId]
   );
 
-  async function handleSend(body, attachment) {
+  async function handleSend(body, attachment, replyTo) {
     if (!activeChannelId) return;
-    await sendMessage(activeChannelId, body, attachment);
+    await sendMessage(activeChannelId, body, attachment, replyTo);
+  }
+
+  async function handleReact(messageId, emoji) {
+    const message = await toggleReaction(messageId, emoji);
+    setMessages((prev) => prev.map((m) => (m._id === message._id ? message : m)));
   }
 
   return (
@@ -99,34 +340,16 @@ export default function ChatPage() {
 
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
             <div className="mx-auto flex max-w-2xl flex-col gap-5">
-              {messages.map((m) => {
-                const isMine = m.author?._id === currentUser?._id;
-                return isMine ? (
-                  <div key={m._id} className="flex justify-end">
-                    <div className="max-w-[75%] rounded-2xl rounded-tr-sm bg-(--color-accent) px-4 py-2.5 text-sm text-white">
-                      {m.body && <div className="whitespace-pre-wrap">{m.body}</div>}
-                      {m.attachment && <MessageAttachment attachment={m.attachment} />}
-                      <div className="mt-1 text-right text-[10px] text-white/70">
-                        {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div key={m._id} className="flex items-start gap-2.5">
-                    <Avatar name={m.author?.name} size={24} />
-                    <div className="min-w-0 max-w-[75%]">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-xs font-semibold">{m.author?.name ?? "Unknown"}</span>
-                        <span className="text-[10px] text-(--color-text-muted)">
-                          {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                      </div>
-                      {m.body && <div className="text-sm whitespace-pre-wrap">{m.body}</div>}
-                      {m.attachment && <MessageAttachment attachment={m.attachment} />}
-                    </div>
-                  </div>
-                );
-              })}
+              {messages.map((m) => (
+                <MessageRow
+                  key={m._id}
+                  message={m}
+                  isMine={m.author?._id === currentUser?._id}
+                  currentUser={currentUser}
+                  onReply={setReplyingTo}
+                  onReact={handleReact}
+                />
+              ))}
               {messages.length === 0 && (
                 <div className="py-16 text-center text-sm text-(--color-text-muted)">
                   No messages yet. Say hello 👋
@@ -136,7 +359,11 @@ export default function ChatPage() {
           </div>
 
           <div className="px-6 pb-6">
-            <ChatComposer onSend={handleSend} />
+            <ChatComposer
+              onSend={handleSend}
+              replyingTo={replyingTo}
+              onCancelReply={() => setReplyingTo(null)}
+            />
           </div>
         </>
       ) : (

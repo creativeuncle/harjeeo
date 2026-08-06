@@ -16,6 +16,18 @@ const messageSchema = new mongoose.Schema(
       ),
       default: null,
     },
+    replyTo: { type: mongoose.Schema.Types.ObjectId, ref: "Message", default: null },
+    reactions: [
+      new mongoose.Schema(
+        {
+          user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+          emoji: { type: String, required: true },
+        },
+        { _id: false }
+      ),
+    ],
+    deliveredTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

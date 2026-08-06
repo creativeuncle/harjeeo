@@ -5,6 +5,8 @@ import {
   getOrCreateDM,
   listMessages,
   createMessage,
+  toggleReaction,
+  markChannelRead,
 } from "../controllers/chat.controller.js";
 import { protect } from "../middleware/auth.js";
 
@@ -16,5 +18,7 @@ router.post("/channels", createChannel);
 router.post("/dm", getOrCreateDM);
 router.get("/channels/:channelId/messages", listMessages);
 router.post("/channels/:channelId/messages", createMessage);
+router.post("/channels/:channelId/read", markChannelRead);
+router.post("/messages/:messageId/reactions", toggleReaction);
 
 export default router;

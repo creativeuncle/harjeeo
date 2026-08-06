@@ -1,12 +1,20 @@
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Add01Icon, Attachment01Icon, AtIcon, SmileIcon, Mic01Icon, SentIcon } from "hugeicons-react";
+import {
+  Add01Icon,
+  Attachment01Icon,
+  AtIcon,
+  SmileIcon,
+  Mic01Icon,
+  SentIcon,
+  Cancel01Icon,
+} from "hugeicons-react";
 import IconPicker from "@/components/ui/IconPicker";
 import Avatar from "@/components/ui/Avatar";
 import { uploadFile } from "@/lib/uploads";
 import { useChatStore } from "@/store/chatStore";
 
-export default function ChatComposer({ onSend }) {
+export default function ChatComposer({ onSend, replyingTo, onCancelReply }) {
   const members = useChatStore((s) => s.members);
 
   const [draft, setDraft] = useState("");
@@ -78,7 +86,8 @@ export default function ChatComposer({ onSend }) {
     try {
       const isImage = file.type.startsWith("image/");
       const { url } = await uploadFile(file);
-      await onSend("", { url, type: isImage ? "image" : "file", name: file.name });
+      await onSend("", { url, type: isImage ? "image" : "file", name: file.name }, replyingTo?._id);
+      onCancelReply?.();
     } catch (err) {
       window.alert(err.message);
     } finally {
@@ -105,7 +114,8 @@ export default function ChatComposer({ onSend }) {
         try {
           const file = new File([blob], "voice-message.webm", { type: "audio/webm" });
           const { url } = await uploadFile(file);
-          await onSend("", { url, type: "audio", name: "Voice message" });
+          await onSend("", { url, type: "audio", name: "Voice message" }, replyingTo?._id);
+          onCancelReply?.();
         } catch (err) {
           window.alert(err.message);
         } finally {
@@ -126,7 +136,8 @@ export default function ChatComposer({ onSend }) {
     const body = draft.trim();
     setDraft("");
     setMentionOpen(false);
-    await onSend(body, null);
+    await onSend(body, null, replyingTo?._id);
+    onCancelReply?.();
   }
 
   const filteredMentionMembers = members.filter((m) =>
@@ -138,6 +149,26 @@ export default function ChatComposer({ onSend }) {
       onSubmit={handleSubmit}
       className="mx-auto flex max-w-2xl flex-col gap-1.5 rounded-2xl border border-(--color-border) bg-(--color-canvas) px-3 py-2.5 shadow-sm"
     >
+      {replyingTo && (
+        <div className="flex items-center gap-2 rounded-lg bg-black/5 px-2.5 py-1.5 dark:bg-white/10">
+          <div className="min-w-0 flex-1 border-l-2 border-(--color-accent) pl-2">
+            <div className="text-xs font-medium text-(--color-accent)">
+              {replyingTo.author?.name ?? "Message"}
+            </div>
+            <div className="truncate text-xs text-(--color-text-muted)">
+              {replyingTo.body || replyingTo.attachment?.name || "Attachment"}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onCancelReply}
+            className="shrink-0 rounded-full p-1 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            <Cancel01Icon size={14} strokeWidth={1.8} />
+          </button>
+        </div>
+      )}
+
       <div className="relative">
         <input
           ref={inputRef}

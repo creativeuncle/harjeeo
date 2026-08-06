@@ -20,7 +20,21 @@ export async function listMessages(channelId) {
   return data.messages;
 }
 
-export async function sendMessage(channelId, body, attachment = null) {
-  const { data } = await api.post(`/chat/channels/${channelId}/messages`, { body, attachment });
+export async function sendMessage(channelId, body, attachment = null, replyTo = null) {
+  const { data } = await api.post(`/chat/channels/${channelId}/messages`, {
+    body,
+    attachment,
+    replyTo,
+  });
   return data.message;
+}
+
+export async function toggleReaction(messageId, emoji) {
+  const { data } = await api.post(`/chat/messages/${messageId}/reactions`, { emoji });
+  return data.message;
+}
+
+export async function markChannelRead(channelId) {
+  const { data } = await api.post(`/chat/channels/${channelId}/read`);
+  return data;
 }
