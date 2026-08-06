@@ -273,7 +273,7 @@ function PinnedBar({ messages, onJumpTo, onUnpin }) {
   if (pinned.length === 0) return null;
 
   return (
-    <div className="border-b border-(--color-border) bg-amber-500/5 px-6 py-2">
+    <div className="border-b border-(--color-border) bg-amber-500/5 px-10 py-2">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -401,7 +401,7 @@ export default function ChatPage() {
     <div className="flex h-full flex-col">
       {activeChannel ? (
         <>
-          <div className="flex items-center gap-2 border-b border-(--color-border) px-6 py-3.5">
+          <div className="flex items-center gap-2 border-b border-(--color-border) px-10 py-3.5">
             {activeChannel.isDM ? (
               <Avatar name={channelLabel(activeChannel, currentUser?._id)} size={22} />
             ) : (
@@ -412,7 +412,7 @@ export default function ChatPage() {
 
           <PinnedBar messages={messages} onJumpTo={handleJumpTo} onUnpin={handlePin} />
 
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-10 py-6">
             <div className="flex flex-col gap-5">
               {messages.map((m) => (
                 <MessageRow
@@ -433,7 +433,7 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="px-6 pb-6">
+          <div className="px-10 pb-6">
             <ChatComposer
               onSend={handleSend}
               replyingTo={replyingTo}

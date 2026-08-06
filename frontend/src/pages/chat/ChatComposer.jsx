@@ -150,7 +150,7 @@ export default function ChatComposer({ onSend, replyingTo, onCancelReply }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mx-auto flex max-w-2xl flex-col gap-1.5 rounded-2xl border border-(--color-border) bg-(--color-canvas) px-3 py-2.5 shadow-sm"
+      className="flex flex-col gap-1.5 rounded-2xl border border-(--color-border) bg-(--color-canvas) px-3 py-2.5 shadow-sm"
     >
       {replyingTo && (
         <div className="flex items-center gap-2 rounded-lg bg-black/5 px-2.5 py-1.5 dark:bg-white/10">
