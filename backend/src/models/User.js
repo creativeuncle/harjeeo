@@ -11,7 +11,8 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    password: { type: String, required: true, select: false },
+    password: { type: String, select: false },
+    googleId: { type: String, default: null, unique: true, sparse: true },
     avatarUrl: { type: String, default: "" },
     manualStatus: {
       type: String,
@@ -30,11 +31,12 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre("save", async function hashPassword() {
-  if (!this.isModified("password")) return;
+  if (!this.isModified("password") || !this.password) return;
   this.password = await bcrypt.hash(this.password, 10);
 });
 
 userSchema.methods.comparePassword = function comparePassword(candidate) {
+  if (!this.password) return Promise.resolve(false);
   return bcrypt.compare(candidate, this.password);
 };
 

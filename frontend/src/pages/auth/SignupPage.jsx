@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import AuthLayout from "./AuthLayout";
+import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -66,6 +67,8 @@ export default function SignupPage() {
           {loading ? "Creating account…" : "Sign up"}
         </button>
       </form>
+
+      <GoogleAuthButton />
 
       <p className="mt-4 text-center text-sm text-(--color-text-muted)">
         Already have an account?{" "}

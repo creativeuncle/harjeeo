@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import AuthLayout from "./AuthLayout";
+import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -63,6 +64,8 @@ export default function LoginPage() {
           {loading ? "Logging in…" : "Log in"}
         </button>
       </form>
+
+      <GoogleAuthButton />
 
       <p className="mt-4 text-center text-sm text-(--color-text-muted)">
         Don't have an account?{" "}

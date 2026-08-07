@@ -16,4 +16,5 @@ export const env = {
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY,
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY,
   vapidSubject: process.env.VAPID_SUBJECT || "mailto:support@harjeeo.app",
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
 };

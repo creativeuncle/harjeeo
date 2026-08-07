@@ -1,4 +1,5 @@
 import asyncHandler from "express-async-handler";
+import { OAuth2Client } from "google-auth-library";
 import User from "../models/User.js";
 import Workspace from "../models/Workspace.js";
 import WorkspaceMember from "../models/WorkspaceMember.js";
@@ -11,6 +12,9 @@ import {
 } from "../utils/tokens.js";
 import { generateRawToken, hashToken } from "../utils/hashToken.js";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../utils/email.js";
+import { env } from "../config/env.js";
+
+const googleClient = env.googleClientId ? new OAuth2Client(env.googleClientId) : null;
 
 const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000; // 1h
@@ -82,6 +86,63 @@ export const login = asyncHandler(async (req, res) => {
 
   const accessToken = issueTokens(res, user._id.toString());
   res.json({ user: user.toSafeObject(), accessToken });
+});
+
+export const googleAuth = asyncHandler(async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) {
+    res.status(400);
+    throw new Error("Missing Google credential");
+  }
+  if (!googleClient) {
+    res.status(500);
+    throw new Error("Google sign-in is not configured on the server");
+  }
+
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: env.googleClientId,
+    });
+    payload = ticket.getPayload();
+  } catch {
+    res.status(401);
+    throw new Error("Invalid Google credential");
+  }
+
+  const { sub: googleId, email, name, picture, email_verified } = payload;
+  if (!email) {
+    res.status(400);
+    throw new Error("This Google account has no email");
+  }
+
+  let user = await User.findOne({ googleId });
+  if (!user) {
+    user = await User.findOne({ email: email.toLowerCase() });
+    if (user && !user.googleId) {
+      user.googleId = googleId;
+      if (!user.avatarUrl && picture) user.avatarUrl = picture;
+      await user.save();
+    }
+  }
+
+  let isNewUser = false;
+  if (!user) {
+    isNewUser = true;
+    user = await User.create({
+      name: name || email.split("@")[0],
+      email,
+      googleId,
+      avatarUrl: picture || "",
+      isEmailVerified: Boolean(email_verified),
+    });
+    const workspace = await Workspace.create({ name: `${user.name}'s Workspace`, owner: user._id });
+    await WorkspaceMember.create({ workspace: workspace._id, user: user._id, role: "owner" });
+  }
+
+  const accessToken = issueTokens(res, user._id.toString());
+  res.status(isNewUser ? 201 : 200).json({ user: user.toSafeObject(), accessToken });
 });
 
 export const refresh = asyncHandler(async (req, res) => {
