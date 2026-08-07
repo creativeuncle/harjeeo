@@ -8,6 +8,7 @@ import {
   Calendar03Icon,
   BookOpen01Icon,
   Note01Icon,
+  BookmarkAdd02Icon,
   Add01Icon,
   HashtagIcon,
   Logout01Icon,
@@ -166,6 +167,7 @@ export default function Sidebar() {
           </div>
           <nav className="mt-1 flex flex-col gap-0.5">
             <SidebarLink to="/notes" label="Notes" icon={Note01Icon} />
+            <SidebarLink to="/reading-list" label="Reading List" icon={BookmarkAdd02Icon} />
             <button
               type="button"
               onClick={handleNewNote}

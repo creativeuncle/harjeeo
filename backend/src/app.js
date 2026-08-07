@@ -24,6 +24,7 @@ import trashRoutes from "./routes/trash.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import versionRoutes from "./routes/version.routes.js";
 import expenseRoutes from "./routes/expense.routes.js";
+import bookmarkRoutes from "./routes/bookmark.routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -56,6 +57,7 @@ app.use("/api/trash", trashRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/versions", versionRoutes);
 app.use("/api", expenseRoutes);
+app.use("/api/bookmarks", bookmarkRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
