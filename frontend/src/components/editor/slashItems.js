@@ -158,7 +158,7 @@ export function getSlashItems({ query }) {
       title: "Embed",
       icon: Link04Icon,
       command: (ctx) =>
-        insertMediaNode({ ...ctx, type: "embed", promptLabel: "URL to embed (Figma, CodePen, Twitter, etc.)" }),
+        insertMediaNode({ ...ctx, type: "embed", promptLabel: "URL to embed (Figma, YouTube, Google Maps, CodePen, etc.)" }),
     },
   ];
 
