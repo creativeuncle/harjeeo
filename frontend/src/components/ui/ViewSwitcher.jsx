@@ -1,15 +1,19 @@
-import { Table01Icon, LayoutGridIcon, Calendar03Icon } from "hugeicons-react";
+import { Table01Icon, LayoutGridIcon, Calendar03Icon, ChartLineData02Icon } from "hugeicons-react";
 
-const VIEWS = [
-  { key: "table", label: "Table", icon: Table01Icon },
-  { key: "board", label: "Board", icon: LayoutGridIcon },
-  { key: "calendar", label: "Calendar", icon: Calendar03Icon },
-];
+const ALL_VIEWS = {
+  table: { key: "table", label: "Table", icon: Table01Icon },
+  board: { key: "board", label: "Board", icon: LayoutGridIcon },
+  calendar: { key: "calendar", label: "Calendar", icon: Calendar03Icon },
+  gantt: { key: "gantt", label: "Gantt", icon: ChartLineData02Icon },
+};
 
-export default function ViewSwitcher({ value, onChange }) {
+const DEFAULT_VIEWS = ["table", "board", "calendar"];
+
+export default function ViewSwitcher({ value, onChange, views = DEFAULT_VIEWS }) {
+  const activeViews = views.map((key) => ALL_VIEWS[key]);
   return (
     <div className="inline-flex items-center gap-0.5 rounded-md border border-(--color-border) p-0.5">
-      {VIEWS.map((view) => (
+      {activeViews.map((view) => (
         <button
           key={view.key}
           type="button"

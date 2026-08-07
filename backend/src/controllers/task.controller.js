@@ -85,6 +85,7 @@ export const updateTask = asyncHandler(async (req, res) => {
   if ("title" in req.body) task.title = req.body.title;
   if ("content" in req.body) task.content = req.body.content;
   if ("projectId" in req.body) task.projectId = req.body.projectId || null;
+  if ("startDate" in req.body) task.startDate = req.body.startDate || null;
   if ("dueDate" in req.body) {
     const nextDueDate = req.body.dueDate || null;
     if (String(nextDueDate) !== String(task.dueDate)) task.dueReminderSentAt = null;
@@ -101,7 +102,7 @@ export const updateTask = asyncHandler(async (req, res) => {
   res.json({ task });
 
   const changedFields = Object.keys(req.body).filter((key) =>
-    ["title", "content", "projectId", "dueDate", "dependsOn", "properties"].includes(key)
+    ["title", "content", "projectId", "startDate", "dueDate", "dependsOn", "properties"].includes(key)
   );
   if (changedFields.length) {
     logActivity({

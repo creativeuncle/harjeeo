@@ -10,6 +10,7 @@ const taskSchema = new mongoose.Schema(
     },
     order: { type: Number, default: 0 },
     projectId: { type: mongoose.Schema.Types.ObjectId, ref: "Project", default: null },
+    startDate: { type: Date, default: null },
     dueDate: { type: Date, default: null },
     dependsOn: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
     dueReminderSentAt: { type: Date, default: null },

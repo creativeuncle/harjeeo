@@ -14,6 +14,7 @@ import { listProjects } from "@/lib/projects";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import ViewSwitcher from "@/components/ui/ViewSwitcher";
 import CalendarView from "@/components/ui/CalendarView";
+import GanttView from "@/components/ui/GanttView";
 import FilterSortBar from "@/components/ui/FilterSortBar";
 import TaskColumn from "./TaskColumn";
 
@@ -124,6 +125,20 @@ export default function TasksPage() {
     [visibleTasks]
   );
 
+  const ganttTasks = useMemo(
+    () =>
+      visibleTasks.map((task) => ({
+        id: task._id,
+        title: task.title,
+        startDate: task.startDate,
+        dueDate: task.dueDate,
+        dependsOnIds: (task.dependsOn ?? []).map(String),
+        dotClass: STATUS_COLUMNS.find((c) => c.key === task.status)?.dot,
+        onClick: () => navigate(`/tasks/${task._id}`),
+      })),
+    [visibleTasks, navigate]
+  );
+
   async function handleAddTask(status) {
     if (!workspaceId) return;
     setCreatingCol(status);
@@ -194,7 +209,11 @@ export default function TasksPage() {
           <Task01Icon size={26} strokeWidth={1.8} />
           <h1 className="text-2xl font-semibold">Tasks</h1>
         </div>
-        <ViewSwitcher value={view} onChange={handleViewChange} />
+        <ViewSwitcher
+          value={view}
+          onChange={handleViewChange}
+          views={["table", "board", "calendar", "gantt"]}
+        />
       </div>
 
       <FilterSortBar
@@ -309,6 +328,8 @@ export default function TasksPage() {
           emptyLabel="No due date"
         />
       )}
+
+      {!loading && view === "gantt" && <GanttView tasks={ganttTasks} />}
     </div>
   );
 }

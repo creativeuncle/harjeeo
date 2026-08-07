@@ -244,6 +244,17 @@ export default function TaskDetailPage() {
         <div className="flex min-h-9 items-center gap-3">
           <span className="flex w-32 shrink-0 items-center gap-2 text-(--color-text-muted)">
             <Calendar03Icon size={18} strokeWidth={1.8} />
+            Start date
+          </span>
+          <DatePicker
+            value={toDateInputValue(task.startDate)}
+            onChange={(date) => patchField("startDate", date)}
+          />
+        </div>
+
+        <div className="flex min-h-9 items-center gap-3">
+          <span className="flex w-32 shrink-0 items-center gap-2 text-(--color-text-muted)">
+            <Calendar03Icon size={18} strokeWidth={1.8} />
             Due date
           </span>
           <DatePicker
