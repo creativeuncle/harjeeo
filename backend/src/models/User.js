@@ -13,6 +13,12 @@ const userSchema = new mongoose.Schema(
     },
     password: { type: String, required: true, select: false },
     avatarUrl: { type: String, default: "" },
+    manualStatus: {
+      type: String,
+      enum: ["away", "busy", "in_meeting", null],
+      default: null,
+    },
+    statusMessage: { type: String, default: "", trim: true },
     isEmailVerified: { type: Boolean, default: false },
     language: { type: String, default: "en" },
     emailVerificationTokenHash: { type: String, select: false },
@@ -38,6 +44,8 @@ userSchema.methods.toSafeObject = function toSafeObject() {
     name: this.name,
     email: this.email,
     avatarUrl: this.avatarUrl,
+    manualStatus: this.manualStatus,
+    statusMessage: this.statusMessage,
     isEmailVerified: this.isEmailVerified,
     language: this.language,
   };

@@ -7,6 +7,7 @@ import Activity from "../models/Activity.js";
 import { generateRawToken, hashToken } from "../utils/hashToken.js";
 import { sendWorkspaceInviteEmail } from "../utils/email.js";
 import { notify } from "../utils/notify.js";
+import { getOnlineUserIds } from "../presence.js";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const MANAGE_ROLES = ["owner", "admin"];
@@ -93,14 +94,21 @@ export const listMembers = asyncHandler(async (req, res) => {
   }
 
   const members = await WorkspaceMember.find({ workspace: req.params.id })
-    .populate("user", "name email avatarUrl")
+    .populate("user", "name email avatarUrl manualStatus statusMessage")
     .sort({ createdAt: 1 });
   const invites = await WorkspaceInvite.find({
     workspace: req.params.id,
     status: "pending",
   }).sort({ createdAt: 1 });
 
-  res.json({ members, invites });
+  const onlineIds = new Set(getOnlineUserIds());
+  const membersWithPresence = members.map((m) => {
+    const obj = m.toObject();
+    if (obj.user) obj.user.online = onlineIds.has(String(obj.user._id));
+    return obj;
+  });
+
+  res.json({ members: membersWithPresence, invites });
 });
 
 export const listActivity = asyncHandler(async (req, res) => {

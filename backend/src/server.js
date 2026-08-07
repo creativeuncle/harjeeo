@@ -12,6 +12,7 @@ import { migrateWorkspaces, migrateLegacyProjectLeads } from "./utils/migrateWor
 import { scheduleDueDateReminders } from "./utils/dueDateReminders.js";
 import { schedulePurgeTrash } from "./utils/purgeTrash.js";
 import { schedulePurgeAttachments } from "./utils/purgeAttachments.js";
+import { addConnection, removeConnection, getOnlineUserIds } from "./presence.js";
 
 async function start() {
   await connectDB();
@@ -38,6 +39,12 @@ async function start() {
   });
 
   io.on("connection", (socket) => {
+    const wasOffline = addConnection(socket.userId);
+    if (wasOffline) {
+      io.emit("presence:online", { userId: String(socket.userId) });
+    }
+    socket.emit("presence:list", { userIds: getOnlineUserIds() });
+
     socket.on("join_channel", async (channelId) => {
       const channel = await Channel.findById(channelId).select("members");
       if (channel && channel.members.some((m) => String(m) === String(socket.userId))) {
@@ -47,6 +54,13 @@ async function start() {
 
     socket.on("leave_channel", (channelId) => {
       socket.leave(String(channelId));
+    });
+
+    socket.on("disconnect", () => {
+      const wentOffline = removeConnection(socket.userId);
+      if (wentOffline) {
+        io.emit("presence:offline", { userId: String(socket.userId) });
+      }
     });
   });
 

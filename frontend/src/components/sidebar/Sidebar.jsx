@@ -22,8 +22,19 @@ import { listMembers } from "@/lib/workspaces";
 import { useAuthStore } from "@/store/authStore";
 import { useWorkspaceStore } from "@/store/workspaceStore";
 import { useChatStore } from "@/store/chatStore";
+import { usePresence } from "@/store/presenceStore";
 import Avatar from "@/components/ui/Avatar";
 import WorkspaceSwitcher from "./WorkspaceSwitcher";
+import StatusPicker from "./StatusPicker";
+
+function PresentAvatar({ user, size = 18 }) {
+  const presence = usePresence(user._id, {
+    online: user.online,
+    manualStatus: user.manualStatus,
+    statusMessage: user.statusMessage,
+  });
+  return <Avatar name={user.name} size={size} online={presence.online} manualStatus={presence.manualStatus} />;
+}
 
 function channelLabel(channel, currentUserId) {
   if (!channel.isDM) return channel.name || "Untitled channel";
@@ -247,7 +258,7 @@ export default function Sidebar() {
                       : "text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
                   }`}
                 >
-                  <Avatar name={m.name} size={18} />
+                  <PresentAvatar user={m} size={18} />
                   <span className="min-w-0 flex-1 truncate">{m.name}</span>
                 </button>
               );
@@ -268,21 +279,26 @@ export default function Sidebar() {
       </button>
 
       <div className="mt-2 flex items-center justify-between gap-2 border-t border-(--color-border) px-2 pt-2">
-        <NavLink
-          to="/profile"
-          className="flex min-w-0 flex-1 items-center gap-2 rounded-md py-1 text-sm hover:bg-black/5 dark:hover:bg-white/10"
-        >
-          {user?.avatarUrl ? (
-            <img
-              src={user.avatarUrl}
-              alt={user.name}
-              className="h-5 w-5 shrink-0 rounded-full object-cover"
-            />
-          ) : (
-            <Avatar name={user?.name} />
-          )}
-          <span className="truncate">{user?.name}</span>
-        </NavLink>
+        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md py-1 text-sm">
+          <StatusPicker
+            trigger={
+              user?.avatarUrl ? (
+                <span className="relative inline-flex h-5 w-5 shrink-0">
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name}
+                    className="h-5 w-5 shrink-0 rounded-full object-cover"
+                  />
+                </span>
+              ) : (
+                <Avatar name={user?.name} online manualStatus={user?.manualStatus} />
+              )
+            }
+          />
+          <NavLink to="/profile" className="min-w-0 flex-1 truncate hover:underline">
+            {user?.name}
+          </NavLink>
+        </div>
         <button
           type="button"
           onClick={handleLogout}
