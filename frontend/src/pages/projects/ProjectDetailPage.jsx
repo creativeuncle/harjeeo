@@ -24,6 +24,7 @@ import VersionHistoryPopover from "@/components/ui/VersionHistoryPopover";
 import ManageAccessPopover from "@/components/ui/ManageAccessPopover";
 import LeadPicker from "./LeadPicker";
 import TasksPicker from "./TasksPicker";
+import BudgetSection from "./BudgetSection";
 
 function toDateInputValue(d) {
   if (!d) return null;
@@ -250,6 +251,15 @@ export default function ProjectDetailPage() {
           mentionItems={mentionItems}
           collabDocName={`project:${id}`}
           editable={canEdit}
+        />
+      </div>
+
+      <div className="mt-8 border-t border-(--color-border) pt-6 print:hidden">
+        <BudgetSection
+          projectId={id}
+          budget={project.budget}
+          canEdit={canEdit}
+          onBudgetChange={(value) => patchField("budget", value)}
         />
       </div>
 

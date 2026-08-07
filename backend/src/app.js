@@ -23,6 +23,7 @@ import uploadRoutes from "./routes/upload.routes.js";
 import trashRoutes from "./routes/trash.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import versionRoutes from "./routes/version.routes.js";
+import expenseRoutes from "./routes/expense.routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -54,6 +55,7 @@ app.use("/api/uploads", uploadRoutes);
 app.use("/api/trash", trashRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/versions", versionRoutes);
+app.use("/api", expenseRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
