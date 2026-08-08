@@ -22,6 +22,7 @@ import SharedContentPage from "@/pages/share/SharedContentPage";
 import TrashPage from "@/pages/trash/TrashPage";
 import ReadingListPage from "@/pages/reading/ReadingListPage";
 import DashboardPage from "@/pages/dashboard/DashboardPage";
+import MeetingsPage from "@/pages/meetings/MeetingsPage";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -52,6 +53,7 @@ export const router = createBrowserRouter([
           { path: "trash", element: <TrashPage /> },
           { path: "reading-list", element: <ReadingListPage /> },
           { path: "dashboard", element: <DashboardPage /> },
+          { path: "meetings", element: <MeetingsPage /> },
         ],
       },
     ],
