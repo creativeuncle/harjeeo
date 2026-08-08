@@ -69,21 +69,14 @@ async function start() {
   const collabWss = new WebSocketServer({ noServer: true });
   server.on("upgrade", (request, socket, head) => {
     const { pathname } = new URL(request.url, "http://localhost");
-    console.log(`[upgrade] raw request.url=${request.url} pathname=${pathname}`);
     if (pathname !== "/collab") return;
-    console.log(`[upgrade] handing off to hocuspocus`);
     collabWss.handleUpgrade(request, socket, head, (ws) => {
-      console.log(`[upgrade] handleUpgrade callback fired, calling hocuspocus.handleConnection`);
-      ws.on("message", (data) => {
-        console.log(`[upgrade] raw ws message received, ${data.length} bytes`);
-      });
-      ws.on("close", (code, reason) => {
-        console.log(`[upgrade] raw ws closed, code=${code} reason=${reason}`);
-      });
-      ws.on("error", (err) => {
-        console.error(`[upgrade] raw ws error:`, err);
-      });
-      hocuspocus.handleConnection(ws, request);
+      // hocuspocus.handleConnection() only builds the ClientConnection — it
+      // does not attach its own "message"/"close" listeners, so we have to
+      // pipe the raw websocket events into it ourselves.
+      const connection = hocuspocus.handleConnection(ws, request);
+      ws.on("message", (data) => connection.handleMessage(data));
+      ws.on("close", (event) => connection.handleClose(event));
     });
   });
 

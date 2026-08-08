@@ -19,7 +19,6 @@ function parseDocumentName(documentName) {
 
 export const hocuspocus = new Hocuspocus({
   async onAuthenticate({ token, documentName }) {
-    console.log(`[collab] onAuthenticate called for ${documentName}, token present=${!!token}`);
     let payload;
     try {
       payload = verifyAccessToken(token);
@@ -49,21 +48,13 @@ export const hocuspocus = new Hocuspocus({
   },
 
   async onLoadDocument({ documentName, document }) {
-    console.log(`[collab] onLoadDocument ${documentName}`);
     const { Model, id } = parseDocumentName(documentName);
-    if (!Model || !id) {
-      console.warn(`[collab] onLoadDocument: unknown document ${documentName}`);
-      return;
-    }
+    if (!Model || !id) return;
 
     const target = await Model.findById(id).select("+ydoc content");
-    if (!target) {
-      console.warn(`[collab] onLoadDocument: target not found for ${documentName}`);
-      return;
-    }
+    if (!target) return;
 
     if (target.ydoc && target.ydoc.length > 0) {
-      console.log(`[collab] onLoadDocument: applying existing ydoc for ${documentName} (${target.ydoc.length} bytes)`);
       Y.applyUpdate(document, target.ydoc);
       return;
     }
@@ -72,22 +63,15 @@ export const hocuspocus = new Hocuspocus({
       try {
         const schema = getCollabSchema();
         prosemirrorJSONToYXmlFragment(schema, target.content, document.getXmlFragment("default"));
-        console.log(`[collab] onLoadDocument: seeded ${documentName} from existing content field`);
       } catch (err) {
-        console.error(`[collab] Failed to seed collab doc ${documentName} from existing content:`, err);
+        console.error(`Failed to seed collab doc ${documentName} from existing content:`, err.message);
       }
-    } else {
-      console.log(`[collab] onLoadDocument: no ydoc/content for ${documentName}, starting blank`);
     }
   },
 
   async onStoreDocument({ documentName, document }) {
-    console.log(`[collab] onStoreDocument fired for ${documentName}`);
     const { Model, id, type } = parseDocumentName(documentName);
-    if (!Model || !id) {
-      console.warn(`[collab] onStoreDocument: unknown document ${documentName}`);
-      return;
-    }
+    if (!Model || !id) return;
 
     const update = Y.encodeStateAsUpdate(document);
     let contentJSON = null;
@@ -95,7 +79,7 @@ export const hocuspocus = new Hocuspocus({
       const schema = getCollabSchema();
       contentJSON = yXmlFragmentToProsemirrorJSON(document.getXmlFragment("default"), schema);
     } catch (err) {
-      console.error(`[collab] Failed to snapshot collab doc ${documentName} to JSON:`, err);
+      console.error(`Failed to snapshot collab doc ${documentName} to JSON:`, err.message);
     }
 
     if (contentJSON) {
@@ -106,7 +90,7 @@ export const hocuspocus = new Hocuspocus({
           targetId: id,
           content: existing.content,
           userId: null,
-        }).catch((err) => console.error(`[collab] Failed to snapshot collab doc ${documentName}:`, err));
+        }).catch((err) => console.error(`Failed to snapshot collab doc ${documentName}:`, err.message));
       }
     }
 
@@ -114,9 +98,8 @@ export const hocuspocus = new Hocuspocus({
     if (contentJSON) update$.content = contentJSON;
     try {
       await Model.findByIdAndUpdate(id, update$);
-      console.log(`[collab] onStoreDocument: saved ${documentName} (${update.length} bytes ydoc, content=${contentJSON ? "yes" : "no"})`);
     } catch (err) {
-      console.error(`[collab] onStoreDocument: FAILED to save ${documentName}:`, err);
+      console.error(`Failed to save collab doc ${documentName}:`, err.message);
     }
   },
 });
