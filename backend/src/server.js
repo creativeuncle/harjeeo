@@ -69,8 +69,11 @@ async function start() {
   const collabWss = new WebSocketServer({ noServer: true });
   server.on("upgrade", (request, socket, head) => {
     const { pathname } = new URL(request.url, "http://localhost");
+    console.log(`[upgrade] raw request.url=${request.url} pathname=${pathname}`);
     if (pathname !== "/collab") return;
+    console.log(`[upgrade] handing off to hocuspocus`);
     collabWss.handleUpgrade(request, socket, head, (ws) => {
+      console.log(`[upgrade] handleUpgrade callback fired, calling hocuspocus.handleConnection`);
       hocuspocus.handleConnection(ws, request);
     });
   });

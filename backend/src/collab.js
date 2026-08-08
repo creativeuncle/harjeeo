@@ -19,6 +19,7 @@ function parseDocumentName(documentName) {
 
 export const hocuspocus = new Hocuspocus({
   async onAuthenticate({ token, documentName }) {
+    console.log(`[collab] onAuthenticate called for ${documentName}, token present=${!!token}`);
     let payload;
     try {
       payload = verifyAccessToken(token);
