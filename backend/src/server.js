@@ -74,6 +74,15 @@ async function start() {
     console.log(`[upgrade] handing off to hocuspocus`);
     collabWss.handleUpgrade(request, socket, head, (ws) => {
       console.log(`[upgrade] handleUpgrade callback fired, calling hocuspocus.handleConnection`);
+      ws.on("message", (data) => {
+        console.log(`[upgrade] raw ws message received, ${data.length} bytes`);
+      });
+      ws.on("close", (code, reason) => {
+        console.log(`[upgrade] raw ws closed, code=${code} reason=${reason}`);
+      });
+      ws.on("error", (err) => {
+        console.error(`[upgrade] raw ws error:`, err);
+      });
       hocuspocus.handleConnection(ws, request);
     });
   });
