@@ -1,16 +1,27 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { env } from "../config/env.js";
 
-const resend = env.resendApiKey ? new Resend(env.resendApiKey) : null;
+const transporter =
+  env.smtpHost && env.smtpUser && env.smtpPass
+    ? nodemailer.createTransport({
+        host: env.smtpHost,
+        port: env.smtpPort,
+        secure: env.smtpPort === 465,
+        auth: { user: env.smtpUser, pass: env.smtpPass },
+      })
+    : null;
+
+async function sendEmail({ to, subject, html }) {
+  if (!transporter) {
+    console.warn(`SMTP not configured — email to ${to} not sent. Subject: ${subject}`);
+    return;
+  }
+  await transporter.sendMail({ from: env.emailFrom, to, subject, html });
+}
 
 export async function sendVerificationEmail(to, token) {
   const link = `${env.clientUrl}/verify-email?token=${token}`;
-  if (!resend) {
-    console.warn(`RESEND_API_KEY not set — verification link for ${to}: ${link}`);
-    return;
-  }
-  await resend.emails.send({
-    from: env.emailFrom,
+  await sendEmail({
     to,
     subject: "Verify your Harjeeo email",
     html: `
@@ -24,12 +35,7 @@ export async function sendVerificationEmail(to, token) {
 
 export async function sendWorkspaceInviteEmail(to, { workspaceName, inviterName, token }) {
   const link = `${env.clientUrl}/invites/accept?token=${token}`;
-  if (!resend) {
-    console.warn(`RESEND_API_KEY not set — workspace invite link for ${to}: ${link}`);
-    return;
-  }
-  await resend.emails.send({
-    from: env.emailFrom,
+  await sendEmail({
     to,
     subject: `${inviterName} invited you to ${workspaceName} on Harjeeo`,
     html: `
@@ -42,12 +48,7 @@ export async function sendWorkspaceInviteEmail(to, { workspaceName, inviterName,
 
 export async function sendPasswordResetEmail(to, token) {
   const link = `${env.clientUrl}/reset-password?token=${token}`;
-  if (!resend) {
-    console.warn(`RESEND_API_KEY not set — reset link for ${to}: ${link}`);
-    return;
-  }
-  await resend.emails.send({
-    from: env.emailFrom,
+  await sendEmail({
     to,
     subject: "Reset your Harjeeo password",
     html: `
