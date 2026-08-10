@@ -104,6 +104,11 @@ export default function RichTextEditor({
 
   function handleMouseMove(e) {
     if (!editable) return;
+    // Moving onto the gutter buttons themselves shouldn't re-run the
+    // block lookup (they live outside .harjeeo-editor-content) — just
+    // leave them showing where they are.
+    if (e.target.closest(".harjeeo-editor-plus, .drag-handle")) return;
+
     const wrapper = wrapperRef.current;
     const content = wrapper?.querySelector(".harjeeo-editor-content");
     if (!wrapper || !content) return;
