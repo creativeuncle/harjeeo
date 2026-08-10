@@ -14,7 +14,10 @@ import { generateRawToken, hashToken } from "../utils/hashToken.js";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../utils/email.js";
 import { env } from "../config/env.js";
 
-const googleClient = env.googleClientId ? new OAuth2Client(env.googleClientId) : null;
+const googleClient =
+  env.googleClientId && env.googleClientSecret
+    ? new OAuth2Client(env.googleClientId, env.googleClientSecret, "postmessage")
+    : null;
 
 const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000; // 1h
@@ -89,10 +92,10 @@ export const login = asyncHandler(async (req, res) => {
 });
 
 export const googleAuth = asyncHandler(async (req, res) => {
-  const { credential } = req.body;
-  if (!credential) {
+  const { code } = req.body;
+  if (!code) {
     res.status(400);
-    throw new Error("Missing Google credential");
+    throw new Error("Missing Google authorization code");
   }
   if (!googleClient) {
     res.status(500);
@@ -101,14 +104,15 @@ export const googleAuth = asyncHandler(async (req, res) => {
 
   let payload;
   try {
+    const { tokens } = await googleClient.getToken(code);
     const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
+      idToken: tokens.id_token,
       audience: env.googleClientId,
     });
     payload = ticket.getPayload();
   } catch {
     res.status(401);
-    throw new Error("Invalid Google credential");
+    throw new Error("Invalid Google authorization code");
   }
 
   const { sub: googleId, email, name, picture, email_verified } = payload;

@@ -24,8 +24,7 @@ function loadGoogleScript() {
 export default function GoogleAuthButton() {
   const navigate = useNavigate();
   const setSession = useAuthStore((s) => s.setSession);
-  const overlayRef = useRef(null);
-  const wrapperRef = useRef(null);
+  const clientRef = useRef(null);
 
   useEffect(() => {
     if (!CLIENT_ID) return;
@@ -33,24 +32,21 @@ export default function GoogleAuthButton() {
 
     loadGoogleScript()
       .then(() => {
-        if (cancelled || !overlayRef.current) return;
-        window.google.accounts.id.initialize({
+        if (cancelled) return;
+        clientRef.current = window.google.accounts.oauth2.initCodeClient({
           client_id: CLIENT_ID,
-          callback: async ({ credential }) => {
+          scope: "openid email profile",
+          ux_mode: "popup",
+          callback: async ({ code }) => {
+            if (!code) return;
             try {
-              const { data } = await api.post("/auth/google", { credential });
+              const { data } = await api.post("/auth/google", { code });
               setSession(data.user, data.accessToken);
               navigate("/", { replace: true });
             } catch {
               // user can retry from the button
             }
           },
-        });
-        const width = wrapperRef.current?.offsetWidth ?? 320;
-        window.google.accounts.id.renderButton(overlayRef.current, {
-          theme: "outline",
-          size: "large",
-          width: Math.min(Math.max(width, 200), 400),
         });
       })
       .catch(() => {});
@@ -62,6 +58,10 @@ export default function GoogleAuthButton() {
 
   if (!CLIENT_ID) return null;
 
+  function handleClick() {
+    clientRef.current?.requestCode();
+  }
+
   return (
     <div className="mt-4 flex flex-col gap-3">
       <div className="flex w-full items-center gap-2 text-xs text-(--color-text-muted)">
@@ -69,7 +69,11 @@ export default function GoogleAuthButton() {
         or
         <div className="h-px flex-1 bg-(--color-border)" />
       </div>
-      <div ref={wrapperRef} className="relative flex items-center justify-center gap-2 overflow-hidden rounded-md border border-(--color-border) bg-(--color-canvas) px-3 py-2 text-sm font-medium text-(--color-text)">
+      <button
+        type="button"
+        onClick={handleClick}
+        className="flex items-center justify-center gap-2 rounded-md border border-(--color-border) bg-(--color-canvas) px-3 py-2 text-sm font-medium text-(--color-text)"
+      >
         <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">
           <path
             fill="#FFC107"
@@ -89,8 +93,7 @@ export default function GoogleAuthButton() {
           />
         </svg>
         Continue with Google
-        <div ref={overlayRef} className="absolute inset-0 opacity-0 [&_iframe]:!h-full [&_iframe]:!w-full" />
-      </div>
+      </button>
     </div>
   );
 }
