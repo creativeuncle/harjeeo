@@ -269,7 +269,11 @@ export default function NotificationBell() {
                   const Icon = TYPE_ICON[notification.type] ?? Notification03Icon;
                   const isInvite = notification.type === "workspace_invite";
                   const inviteId = notification.meta?.inviteId;
-                  const status = isInvite ? inviteStatus[inviteId] : undefined;
+                  const status =
+                    (isInvite && inviteStatus[inviteId]) ||
+                    (isInvite && notification.meta?.inviteStatus !== "pending"
+                      ? notification.meta?.inviteStatus
+                      : undefined);
 
                   const avatar = notification.actor ? (
                     <Avatar name={notification.actor.name} size={26} />

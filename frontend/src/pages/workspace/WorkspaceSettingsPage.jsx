@@ -163,7 +163,7 @@ export default function WorkspaceSettingsPage() {
                 ))}
               </select>
             )}
-            {canManage && m.role !== "owner" && m.user?._id !== currentUser?.id && (
+            {canManage && m.role !== "owner" && m.user?._id !== currentUser?._id && (
               <button
                 type="button"
                 onClick={() => handleRemove(m._id)}

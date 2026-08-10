@@ -103,7 +103,7 @@ export default function CommentSection({ targetType, targetId }) {
       {!loading && comments.length > 0 && (
         <div className="mt-3 flex flex-col gap-3">
           {comments.map((comment) => {
-            const isOwn = comment.author?._id === user?.id;
+            const isOwn = comment.author?._id === user?._id;
             return (
               <div key={comment._id} className="group flex items-start gap-2.5">
                 {comment.author?.avatarUrl ? (

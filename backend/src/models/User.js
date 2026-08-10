@@ -42,7 +42,7 @@ userSchema.methods.comparePassword = function comparePassword(candidate) {
 
 userSchema.methods.toSafeObject = function toSafeObject() {
   return {
-    id: this._id,
+    _id: this._id,
     name: this.name,
     email: this.email,
     avatarUrl: this.avatarUrl,
