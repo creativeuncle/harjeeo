@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
-  Notification03Icon,
+  Notification01Icon,
   BubbleChatIcon,
   ArrowMoveUpRightIcon,
   UserIcon,
@@ -177,7 +177,7 @@ export default function NotificationBell() {
         title="Notifications"
         className="relative rounded-md p-1.5 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
       >
-        <Notification03Icon size={18} strokeWidth={1.8} />
+        <Notification01Icon size={18} strokeWidth={1.8} />
         {unreadCount > 0 && (
           <span className="absolute right-1 top-1 flex h-2 w-2 rounded-full bg-red-500" />
         )}
@@ -266,7 +266,7 @@ export default function NotificationBell() {
                   }
 
                   const notification = entry;
-                  const Icon = TYPE_ICON[notification.type] ?? Notification03Icon;
+                  const Icon = TYPE_ICON[notification.type] ?? Notification01Icon;
                   const isInvite = notification.type === "workspace_invite";
                   const inviteId = notification.meta?.inviteId;
                   const status =
