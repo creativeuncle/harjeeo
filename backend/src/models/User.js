@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     password: { type: String, select: false },
-    googleId: { type: String, default: null, unique: true, sparse: true },
+    googleId: { type: String, unique: true, sparse: true },
     avatarUrl: { type: String, default: "" },
     manualStatus: {
       type: String,
