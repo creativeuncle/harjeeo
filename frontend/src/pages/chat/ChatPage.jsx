@@ -156,8 +156,13 @@ function StatusTicks({ message, currentUserId }) {
 
   if (seen) {
     return (
-      <span className="relative inline-flex w-3.5 shrink-0 text-sky-300">
-        <Tick02Icon size={13} strokeWidth={2.4} />
+      <span className="flex shrink-0 items-center gap-1">
+        <span className="rounded-full bg-white/15 px-1.5 py-0.5 text-[9px] font-medium leading-none text-sky-300">
+          Seen
+        </span>
+        <span className="relative inline-flex w-3.5 shrink-0 text-sky-300">
+          <Tick02Icon size={13} strokeWidth={2.4} />
+        </span>
       </span>
     );
   }
