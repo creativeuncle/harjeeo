@@ -7,6 +7,7 @@ const commentSchema = new mongoose.Schema(
     workspace: { type: mongoose.Schema.Types.ObjectId, ref: "Workspace", required: true },
     targetType: { type: String, enum: ["project", "task"], required: true },
     targetId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    replyTo: { type: mongoose.Schema.Types.ObjectId, ref: "Comment", default: null },
   },
   { timestamps: true }
 );

@@ -37,12 +37,13 @@ export const listComments = asyncHandler(async (req, res) => {
 
   const comments = await Comment.find({ targetType, targetId })
     .sort({ createdAt: 1 })
-    .populate("author", "name avatarUrl");
+    .populate("author", "name avatarUrl")
+    .populate({ path: "replyTo", select: "body author", populate: { path: "author", select: "name" } });
   res.json({ comments });
 });
 
 export const createComment = asyncHandler(async (req, res) => {
-  const { targetType, targetId, body, mentions } = req.body;
+  const { targetType, targetId, body, mentions, replyTo } = req.body;
   if (!body || !body.trim()) {
     res.status(400);
     throw new Error("Comment body is required");
@@ -54,14 +55,22 @@ export const createComment = asyncHandler(async (req, res) => {
   }
   await requireMembership(res, target.workspace, req.user._id);
 
+  let replyToId = null;
+  if (replyTo) {
+    const parent = await Comment.findOne({ _id: replyTo, targetType, targetId });
+    if (parent) replyToId = parent._id;
+  }
+
   const comment = await Comment.create({
     body: body.trim(),
     author: req.user._id,
     workspace: target.workspace,
     targetType,
     targetId,
+    replyTo: replyToId,
   });
   await comment.populate("author", "name avatarUrl");
+  await comment.populate({ path: "replyTo", select: "body author", populate: { path: "author", select: "name" } });
   res.status(201).json({ comment });
 
   const link = targetType === "project" ? `/projects/${target._id}` : `/tasks/${target._id}`;

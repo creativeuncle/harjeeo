@@ -2,6 +2,57 @@
   position: relative;
 }
 
+/* Notion-style block "+" (insert/slash-menu trigger) */
+.harjeeo-editor-plus {
+  position: absolute;
+  left: -52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.harjeeo-editor-plus:hover {
+  background: color-mix(in srgb, var(--color-border) 60%, transparent);
+  color: var(--color-text);
+}
+
+/* Notion-style drag handle (tiptap-extension-global-drag-handle) */
+.drag-handle {
+  position: fixed;
+  opacity: 1;
+  transition: opacity ease-in 0.2s;
+  border-radius: 5px;
+  cursor: grab;
+  z-index: 50;
+}
+.drag-handle:hover {
+  background-color: color-mix(in srgb, var(--color-border) 60%, transparent);
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+.drag-handle.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+.drag-handle::before {
+  content: "";
+  display: block;
+  width: 1.2em;
+  height: 1.2em;
+  margin: auto;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Ccircle cx='9' cy='6' r='1.2'/%3E%3Ccircle cx='9' cy='12' r='1.2'/%3E%3Ccircle cx='9' cy='18' r='1.2'/%3E%3Ccircle cx='15' cy='6' r='1.2'/%3E%3Ccircle cx='15' cy='12' r='1.2'/%3E%3Ccircle cx='15' cy='18' r='1.2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  color: var(--color-text-muted);
+}
+
 .harjeeo-editor-content {
   outline: none;
   font-size: 15px;

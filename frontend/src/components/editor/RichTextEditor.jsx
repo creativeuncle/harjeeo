@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import Collaboration from "@tiptap/extension-collaboration";
+import { Add01Icon } from "hugeicons-react";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import { baseExtensions } from "./extensions";
 import FormattingBubbleMenu from "./FormattingBubbleMenu";
@@ -85,7 +86,7 @@ export default function RichTextEditor({
           },
       editorProps: {
         attributes: {
-          class: "harjeeo-editor-content",
+          class: "harjeeo-editor-content tiptap",
         },
       },
     },
@@ -94,9 +95,70 @@ export default function RichTextEditor({
 
   editorRef.current = editor;
 
+  const wrapperRef = useRef(null);
+  const [plusRect, setPlusRect] = useState(null);
+  const hoveredBlockRef = useRef(null);
+
+  function handleMouseMove(e) {
+    if (!editable) return;
+    const wrapper = wrapperRef.current;
+    const content = wrapper?.querySelector(".harjeeo-editor-content");
+    if (!wrapper || !content) return;
+
+    let el = e.target;
+    while (el && el.parentElement !== content) el = el.parentElement;
+    if (!el || el === content || !content.contains(el)) {
+      hoveredBlockRef.current = null;
+      setPlusRect(null);
+      return;
+    }
+
+    hoveredBlockRef.current = el;
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const blockRect = el.getBoundingClientRect();
+    setPlusRect({ top: blockRect.top - wrapperRect.top });
+  }
+
+  function handleMouseLeave() {
+    hoveredBlockRef.current = null;
+    setPlusRect(null);
+  }
+
+  function handlePlusClick() {
+    const el = hoveredBlockRef.current;
+    if (!editor || !el) return;
+    const pos = editor.view.posAtDOM(el, 0);
+    const resolved = editor.state.doc.resolve(pos);
+    const afterPos = resolved.after(1);
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(afterPos, { type: "paragraph", content: [{ type: "text", text: "/" }] })
+      .setTextSelection(afterPos + 2)
+      .run();
+    setPlusRect(null);
+  }
+
   return (
-    <div className="harjeeo-editor">
+    <div
+      ref={wrapperRef}
+      className="harjeeo-editor"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
       <FormattingBubbleMenu editor={editor} />
+      {editable && plusRect && (
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={handlePlusClick}
+          title="Add block"
+          className="harjeeo-editor-plus"
+          style={{ top: plusRect.top }}
+        >
+          <Add01Icon size={14} strokeWidth={1.8} />
+        </button>
+      )}
       <EditorContent editor={editor} />
     </div>
   );

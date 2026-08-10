@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Attachment02Icon, AtIcon, ArrowUp01Icon, Delete02Icon } from "hugeicons-react";
+import {
+  Attachment02Icon,
+  AtIcon,
+  ArrowUp01Icon,
+  Delete02Icon,
+  ArrowTurnBackwardIcon,
+  Cancel01Icon,
+} from "hugeicons-react";
 import { listComments, createComment, deleteComment } from "@/lib/comments";
 import { listMembers } from "@/lib/workspaces";
 import { useAuthStore } from "@/store/authStore";
@@ -35,6 +42,7 @@ export default function CommentSection({ targetType, targetId }) {
   const [members, setMembers] = useState(null);
   const [mentioned, setMentioned] = useState([]); // [{ id, name }]
   const [mentionTrigger, setMentionTrigger] = useState(null); // { start, query }
+  const [replyingTo, setReplyingTo] = useState(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -81,10 +89,11 @@ export default function CommentSection({ targetType, targetId }) {
     setPosting(true);
     try {
       const mentionIds = mentioned.filter((m) => body.includes(`@${m.name}`)).map((m) => m.id);
-      const comment = await createComment(targetType, targetId, body, mentionIds);
+      const comment = await createComment(targetType, targetId, body, mentionIds, replyingTo?._id ?? null);
       setComments((prev) => [...prev, comment]);
       setValue("");
       setMentioned([]);
+      setReplyingTo(null);
       inputRef.current?.focus();
     } finally {
       setPosting(false);
@@ -124,8 +133,27 @@ export default function CommentSection({ targetType, targetId }) {
                       {formatTimestamp(comment.createdAt)}
                     </span>
                   </div>
+                  {comment.replyTo && (
+                    <div className="mt-1 mb-1 rounded-md border-l-2 border-(--color-border) bg-black/5 px-2 py-1 text-xs text-(--color-text-muted) dark:bg-white/5">
+                      <span className="font-medium text-(--color-text)">
+                        {comment.replyTo.author?.name ?? "Comment"}
+                      </span>{" "}
+                      <span className="truncate">{comment.replyTo.body}</span>
+                    </div>
+                  )}
                   <p className="whitespace-pre-wrap break-words text-sm">{comment.body}</p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReplyingTo(comment);
+                    inputRef.current?.focus();
+                  }}
+                  className="shrink-0 rounded-md p-1 text-(--color-text-muted) opacity-0 hover:bg-black/5 group-hover:opacity-100 dark:hover:bg-white/10"
+                  title="Reply"
+                >
+                  <ArrowTurnBackwardIcon size={14} strokeWidth={1.8} />
+                </button>
                 {isOwn && (
                   <button
                     type="button"
@@ -139,6 +167,22 @@ export default function CommentSection({ targetType, targetId }) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {replyingTo && (
+        <div className="mt-3 flex items-center justify-between rounded-md border-l-2 border-(--color-accent) bg-black/5 px-2.5 py-1.5 text-xs dark:bg-white/5">
+          <div className="min-w-0 truncate">
+            Replying to <span className="font-medium">{replyingTo.author?.name ?? "comment"}</span>:{" "}
+            <span className="text-(--color-text-muted)">{replyingTo.body}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setReplyingTo(null)}
+            className="shrink-0 rounded-full p-0.5 text-(--color-text-muted) hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            <Cancel01Icon size={12} strokeWidth={1.8} />
+          </button>
         </div>
       )}
 
