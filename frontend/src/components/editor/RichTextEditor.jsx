@@ -99,6 +99,9 @@ export default function RichTextEditor({
   const [plusRect, setPlusRect] = useState(null);
   const hoveredBlockRef = useRef(null);
 
+  const GUTTER_SIZE = 22;
+  const GUTTER_GAP = 2;
+
   function handleMouseMove(e) {
     if (!editable) return;
     const wrapper = wrapperRef.current;
@@ -114,9 +117,17 @@ export default function RichTextEditor({
     }
 
     hoveredBlockRef.current = el;
-    const wrapperRect = wrapper.getBoundingClientRect();
     const blockRect = el.getBoundingClientRect();
-    setPlusRect({ top: blockRect.top - wrapperRect.top });
+    const compStyle = window.getComputedStyle(el);
+    const parsedLineHeight = parseInt(compStyle.lineHeight, 10);
+    const lineHeight = Number.isNaN(parsedLineHeight)
+      ? parseInt(compStyle.fontSize, 10) * 1.2
+      : parsedLineHeight;
+    const paddingTop = parseInt(compStyle.paddingTop, 10) || 0;
+    setPlusRect({
+      top: blockRect.top + (lineHeight - GUTTER_SIZE) / 2 + paddingTop,
+      left: blockRect.left - GUTTER_SIZE * 2 - GUTTER_GAP,
+    });
   }
 
   function handleMouseLeave() {
@@ -154,7 +165,7 @@ export default function RichTextEditor({
           onClick={handlePlusClick}
           title="Add block"
           className="harjeeo-editor-plus"
-          style={{ top: plusRect.top }}
+          style={{ top: plusRect.top, left: plusRect.left }}
         >
           <Add01Icon size={14} strokeWidth={1.8} />
         </button>

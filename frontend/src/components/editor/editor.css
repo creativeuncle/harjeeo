@@ -2,37 +2,38 @@
   position: relative;
 }
 
-/* Notion-style block "+" (insert/slash-menu trigger) */
-.harjeeo-editor-plus {
-  position: absolute;
-  left: -52px;
+/* Notion-style block "+" (insert/slash-menu trigger) and drag handle
+   share the same size/shape/background so they read as one gutter pair. */
+.harjeeo-editor-plus,
+.drag-handle {
+  position: fixed;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 22px;
   height: 22px;
   border: none;
-  border-radius: 5px;
-  background: none;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-border) 35%, transparent);
   color: var(--color-text-muted);
+  z-index: 50;
+}
+
+.harjeeo-editor-plus {
   cursor: pointer;
 }
 .harjeeo-editor-plus:hover {
-  background: color-mix(in srgb, var(--color-border) 60%, transparent);
+  background: color-mix(in srgb, var(--color-border) 70%, transparent);
   color: var(--color-text);
 }
 
-/* Notion-style drag handle (tiptap-extension-global-drag-handle) */
 .drag-handle {
-  position: fixed;
   opacity: 1;
   transition: opacity ease-in 0.2s;
-  border-radius: 5px;
   cursor: grab;
-  z-index: 50;
 }
 .drag-handle:hover {
-  background-color: color-mix(in srgb, var(--color-border) 60%, transparent);
+  background: color-mix(in srgb, var(--color-border) 70%, transparent);
 }
 .drag-handle:active {
   cursor: grabbing;

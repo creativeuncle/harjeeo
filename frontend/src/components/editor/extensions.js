@@ -48,7 +48,7 @@ export function baseExtensions({
     Pdf,
     Embed,
     Placeholder.configure({ placeholder }),
-    GlobalDragHandle.configure({ dragHandleWidth: 20 }),
+    GlobalDragHandle.configure({ dragHandleWidth: 22 }),
     SlashCommand,
     createMentionExtension(getMentionItems),
   ];
