@@ -24,13 +24,16 @@ function loadGoogleScript() {
 export default function GoogleAuthButton() {
   const navigate = useNavigate();
   const setSession = useAuthStore((s) => s.setSession);
-  const initialized = useRef(false);
+  const overlayRef = useRef(null);
+  const wrapperRef = useRef(null);
 
   useEffect(() => {
     if (!CLIENT_ID) return;
+    let cancelled = false;
 
     loadGoogleScript()
       .then(() => {
+        if (cancelled || !overlayRef.current) return;
         window.google.accounts.id.initialize({
           client_id: CLIENT_ID,
           callback: async ({ credential }) => {
@@ -43,17 +46,21 @@ export default function GoogleAuthButton() {
             }
           },
         });
-        initialized.current = true;
+        const width = wrapperRef.current?.offsetWidth ?? 320;
+        window.google.accounts.id.renderButton(overlayRef.current, {
+          theme: "outline",
+          size: "large",
+          width: Math.min(Math.max(width, 200), 400),
+        });
       })
       .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
   }, [navigate, setSession]);
 
   if (!CLIENT_ID) return null;
-
-  function handleClick() {
-    if (!initialized.current) return;
-    window.google.accounts.id.prompt();
-  }
 
   return (
     <div className="mt-4 flex flex-col gap-3">
@@ -62,11 +69,7 @@ export default function GoogleAuthButton() {
         or
         <div className="h-px flex-1 bg-(--color-border)" />
       </div>
-      <button
-        type="button"
-        onClick={handleClick}
-        className="flex items-center justify-center gap-2 rounded-md border border-(--color-border) bg-(--color-canvas) px-3 py-2 text-sm font-medium text-(--color-text)"
-      >
+      <div ref={wrapperRef} className="relative flex items-center justify-center gap-2 overflow-hidden rounded-md border border-(--color-border) bg-(--color-canvas) px-3 py-2 text-sm font-medium text-(--color-text)">
         <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">
           <path
             fill="#FFC107"
@@ -86,7 +89,8 @@ export default function GoogleAuthButton() {
           />
         </svg>
         Continue with Google
-      </button>
+        <div ref={overlayRef} className="absolute inset-0 opacity-0 [&_iframe]:!h-full [&_iframe]:!w-full" />
+      </div>
     </div>
   );
 }
