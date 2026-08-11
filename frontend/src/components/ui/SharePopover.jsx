@@ -10,9 +10,15 @@ export default function SharePopover({ isPublic, onToggle, shareType, id }) {
 
   const shareUrl = `${window.location.origin}/share/${shareType}/${id}`;
 
+  const POPOVER_WIDTH = 288; // matches w-72
+
   function handleOpen() {
     const rect = triggerRef.current.getBoundingClientRect();
-    setPosition({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    const left = Math.min(
+      Math.max(rect.right - POPOVER_WIDTH, 8),
+      window.innerWidth - POPOVER_WIDTH - 8
+    );
+    setPosition({ top: rect.bottom + 4, left });
     setOpen(true);
   }
 
@@ -40,7 +46,7 @@ export default function SharePopover({ isPublic, onToggle, shareType, id }) {
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
             <div
-              style={{ top: position.top, right: position.right }}
+              style={{ top: position.top, left: position.left }}
               className="fixed z-50 w-72 rounded-lg border border-(--color-border) bg-(--color-canvas) p-3 shadow-lg"
             >
               <div className="flex items-center justify-between gap-2">
