@@ -98,16 +98,39 @@ export default function RichTextEditor({
   const wrapperRef = useRef(null);
   const [plusRect, setPlusRect] = useState(null);
   const hoveredBlockRef = useRef(null);
+  const hideTimeoutRef = useRef(null);
 
   const GUTTER_SIZE = 22;
-  const GUTTER_GAP = 2;
+
+  useEffect(() => {
+    return () => {
+      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    };
+  }, []);
+
+  function clearHide() {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+  }
+
+  // Small grace delay before hiding, so crossing the gap between a block
+  // and the + button (or briefly passing over the button) doesn't flicker.
+  function scheduleHide() {
+    clearHide();
+    hideTimeoutRef.current = setTimeout(() => {
+      hoveredBlockRef.current = null;
+      setPlusRect(null);
+    }, 150);
+  }
 
   function handleMouseMove(e) {
     if (!editable) return;
-    // Moving onto the gutter buttons themselves shouldn't re-run the
-    // block lookup (they live outside .harjeeo-editor-content) — just
-    // leave them showing where they are.
-    if (e.target.closest(".harjeeo-editor-plus, .drag-handle")) return;
+    if (e.target.closest(".harjeeo-editor-plus")) {
+      clearHide();
+      return;
+    }
 
     const wrapper = wrapperRef.current;
     const content = wrapper?.querySelector(".harjeeo-editor-content");
@@ -116,12 +139,13 @@ export default function RichTextEditor({
     let el = e.target;
     while (el && el.parentElement !== content) el = el.parentElement;
     if (!el || el === content || !content.contains(el)) {
-      hoveredBlockRef.current = null;
-      setPlusRect(null);
+      scheduleHide();
       return;
     }
 
+    clearHide();
     hoveredBlockRef.current = el;
+    const wrapperRect = wrapper.getBoundingClientRect();
     const blockRect = el.getBoundingClientRect();
     const compStyle = window.getComputedStyle(el);
     const parsedLineHeight = parseInt(compStyle.lineHeight, 10);
@@ -130,14 +154,12 @@ export default function RichTextEditor({
       : parsedLineHeight;
     const paddingTop = parseInt(compStyle.paddingTop, 10) || 0;
     setPlusRect({
-      top: blockRect.top + (lineHeight - GUTTER_SIZE) / 2 + paddingTop,
-      left: blockRect.left - GUTTER_SIZE * 2 - GUTTER_GAP,
+      top: blockRect.top - wrapperRect.top + (lineHeight - GUTTER_SIZE) / 2 + paddingTop,
     });
   }
 
   function handleMouseLeave() {
-    hoveredBlockRef.current = null;
-    setPlusRect(null);
+    scheduleHide();
   }
 
   function handlePlusClick() {
@@ -167,10 +189,12 @@ export default function RichTextEditor({
         <button
           type="button"
           onMouseDown={(e) => e.preventDefault()}
+          onMouseEnter={clearHide}
+          onMouseLeave={scheduleHide}
           onClick={handlePlusClick}
           title="Add block"
           className="harjeeo-editor-plus"
-          style={{ top: plusRect.top, left: plusRect.left }}
+          style={{ top: plusRect.top }}
         >
           <Add01Icon size={14} strokeWidth={1.8} />
         </button>

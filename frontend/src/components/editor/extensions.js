@@ -1,5 +1,4 @@
 import StarterKit from "@tiptap/starter-kit";
-import GlobalDragHandle from "tiptap-extension-global-drag-handle";
 import Underline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -48,7 +47,6 @@ export function baseExtensions({
     Pdf,
     Embed,
     Placeholder.configure({ placeholder }),
-    GlobalDragHandle.configure({ dragHandleWidth: 22 }),
     SlashCommand,
     createMentionExtension(getMentionItems),
   ];
