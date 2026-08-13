@@ -1,5 +1,5 @@
-const CACHE_NAME = "harjeeo-shell-v1";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/favicon.svg"];
+const CACHE_NAME = "harjeeo-shell-v2";
+const APP_SHELL = ["/", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -58,8 +58,6 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
-      icon: "/favicon.svg",
-      badge: "/favicon.svg",
       data: { link },
     })
   );
