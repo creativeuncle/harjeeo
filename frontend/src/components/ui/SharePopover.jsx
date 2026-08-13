@@ -65,7 +65,7 @@ export default function SharePopover({ isPublic, onToggle, shareType, id }) {
                 >
                   <span
                     className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${
-                      isPublic ? "translate-x-4.5" : "translate-x-0.5"
+                      isPublic ? "translate-x-[18px]" : "translate-x-0.5"
                     }`}
                   />
                 </button>

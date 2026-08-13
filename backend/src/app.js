@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import path from "node:path";
@@ -30,6 +31,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 
+// CSP is left to the frontend/Nginx layer — the app embeds third-party
+// content (YouTube, Figma, Google Maps, PDFs) that a default helmet CSP
+// would block. The other protective headers (nosniff, frameguard, etc.)
+// still apply.
+app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: false }));
 app.use(cors({ origin: env.clientUrl, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
