@@ -1,6 +1,13 @@
 import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "@/layouts/AppLayout";
+import AdminLayout from "@/layouts/AdminLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import AdminRoute from "@/components/auth/AdminRoute";
+import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
+import AdminUsersPage from "@/pages/admin/AdminUsersPage";
+import AdminWorkspacesPage from "@/pages/admin/AdminWorkspacesPage";
+import AdminAnalyticsPage from "@/pages/admin/AdminAnalyticsPage";
+import AdminSettingsPage from "@/pages/admin/AdminSettingsPage";
 import HomePage from "@/pages/HomePage";
 import ChatPage from "@/pages/chat/ChatPage";
 import NotesListPage from "@/pages/notes/NotesListPage";
@@ -56,6 +63,22 @@ export const router = createBrowserRouter([
           { path: "dashboard", element: <DashboardPage /> },
           { path: "meetings", element: <MeetingsPage /> },
           { path: "ai-chat", element: <AiChatPage /> },
+        ],
+      },
+      {
+        element: <AdminRoute />,
+        children: [
+          {
+            path: "/admin",
+            element: <AdminLayout />,
+            children: [
+              { index: true, element: <AdminDashboardPage /> },
+              { path: "users", element: <AdminUsersPage /> },
+              { path: "workspaces", element: <AdminWorkspacesPage /> },
+              { path: "analytics", element: <AdminAnalyticsPage /> },
+              { path: "settings", element: <AdminSettingsPage /> },
+            ],
+          },
         ],
       },
     ],

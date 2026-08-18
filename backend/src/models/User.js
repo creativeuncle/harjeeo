@@ -22,6 +22,9 @@ const userSchema = new mongoose.Schema(
     statusMessage: { type: String, default: "", trim: true },
     isEmailVerified: { type: Boolean, default: false },
     language: { type: String, default: "en" },
+    // Platform-level role — separate from any workspace membership.
+    // Grants access to the /admin panel across all workspaces.
+    isSuperAdmin: { type: Boolean, default: false },
     emailVerificationTokenHash: { type: String, select: false },
     emailVerificationExpires: { type: Date, select: false },
     passwordResetTokenHash: { type: String, select: false },
@@ -50,6 +53,7 @@ userSchema.methods.toSafeObject = function toSafeObject() {
     statusMessage: this.statusMessage,
     isEmailVerified: this.isEmailVerified,
     language: this.language,
+    isSuperAdmin: this.isSuperAdmin,
   };
 };
 
