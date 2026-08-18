@@ -3,6 +3,7 @@ import Sidebar from "@/components/sidebar/Sidebar";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import PushPermissionBanner from "@/components/notifications/PushPermissionBanner";
 import PresenceProvider from "@/components/presence/PresenceProvider";
+import AiChatPanel from "@/components/ai/AiChatPanel";
 
 export default function AppLayout() {
   return (
@@ -23,6 +24,7 @@ export default function AppLayout() {
           </main>
         </div>
       </div>
+      <AiChatPanel />
     </PresenceProvider>
   );
 }
