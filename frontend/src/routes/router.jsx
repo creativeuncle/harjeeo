@@ -23,6 +23,7 @@ import TrashPage from "@/pages/trash/TrashPage";
 import ReadingListPage from "@/pages/reading/ReadingListPage";
 import DashboardPage from "@/pages/dashboard/DashboardPage";
 import MeetingsPage from "@/pages/meetings/MeetingsPage";
+import AiChatPage from "@/pages/ai/AiChatPage";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
           { path: "reading-list", element: <ReadingListPage /> },
           { path: "dashboard", element: <DashboardPage /> },
           { path: "meetings", element: <MeetingsPage /> },
+          { path: "ai-chat", element: <AiChatPage /> },
         ],
       },
     ],
