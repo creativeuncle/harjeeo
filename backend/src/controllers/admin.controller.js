@@ -5,6 +5,7 @@ import WorkspaceMember from "../models/WorkspaceMember.js";
 import Project from "../models/Project.js";
 import Task from "../models/Task.js";
 import Note from "../models/Note.js";
+import { signAccessToken } from "../utils/tokens.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -55,7 +56,7 @@ export const listUsers = asyncHandler(async (req, res) => {
 
   const [users, total] = await Promise.all([
     User.find(filter)
-      .select("name email avatarUrl isEmailVerified isSuperAdmin googleId createdAt")
+      .select("name email avatarUrl isEmailVerified isSuperAdmin isSuspended googleId createdAt")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit),
@@ -100,4 +101,52 @@ export const listWorkspaces = asyncHandler(async (req, res) => {
     page,
     limit,
   });
+});
+
+export const setUserSuspended = asyncHandler(async (req, res) => {
+  const { suspended } = req.body;
+  if (typeof suspended !== "boolean") {
+    res.status(400);
+    throw new Error("suspended must be a boolean");
+  }
+  if (req.params.id === req.user._id.toString()) {
+    res.status(400);
+    throw new Error("You can't suspend your own account");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    { isSuspended: suspended },
+    { new: true }
+  ).select("name email avatarUrl isEmailVerified isSuperAdmin isSuspended googleId createdAt");
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  res.json({ user });
+});
+
+// Issues a short-lived access token for the target user so an admin can
+// view the app as them for support purposes. Deliberately does not touch
+// the refresh-token cookie, so the admin's own session is untouched and
+// impersonation ends automatically once this access token expires.
+export const impersonateUser = asyncHandler(async (req, res) => {
+  if (req.params.id === req.user._id.toString()) {
+    res.status(400);
+    throw new Error("You're already signed in as yourself");
+  }
+
+  const target = await User.findById(req.params.id);
+  if (!target) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+  if (target.isSuspended) {
+    res.status(400);
+    throw new Error("Can't impersonate a suspended account");
+  }
+
+  const accessToken = signAccessToken(target._id.toString());
+  res.json({ user: target.toSafeObject(), accessToken });
 });

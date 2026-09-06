@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema(
     // Platform-level role — separate from any workspace membership.
     // Grants access to the /admin panel across all workspaces.
     isSuperAdmin: { type: Boolean, default: false },
+    isSuspended: { type: Boolean, default: false },
     emailVerificationTokenHash: { type: String, select: false },
     emailVerificationExpires: { type: Date, select: false },
     passwordResetTokenHash: { type: String, select: false },
@@ -54,6 +55,7 @@ userSchema.methods.toSafeObject = function toSafeObject() {
     isEmailVerified: this.isEmailVerified,
     language: this.language,
     isSuperAdmin: this.isSuperAdmin,
+    isSuspended: this.isSuspended,
   };
 };
 

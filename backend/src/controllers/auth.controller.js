@@ -86,6 +86,10 @@ export const login = asyncHandler(async (req, res) => {
     res.status(401);
     throw new Error("Invalid email or password");
   }
+  if (user.isSuspended) {
+    res.status(403);
+    throw new Error("This account has been suspended");
+  }
 
   const accessToken = issueTokens(res, user._id.toString());
   res.json({ user: user.toSafeObject(), accessToken });
@@ -145,6 +149,11 @@ export const googleAuth = asyncHandler(async (req, res) => {
     await WorkspaceMember.create({ workspace: workspace._id, user: user._id, role: "owner" });
   }
 
+  if (user.isSuspended) {
+    res.status(403);
+    throw new Error("This account has been suspended");
+  }
+
   const accessToken = issueTokens(res, user._id.toString());
   res.status(isNewUser ? 201 : 200).json({ user: user.toSafeObject(), accessToken });
 });
@@ -168,6 +177,10 @@ export const refresh = asyncHandler(async (req, res) => {
   if (!user) {
     res.status(401);
     throw new Error("User not found");
+  }
+  if (user.isSuspended) {
+    res.status(403);
+    throw new Error("This account has been suspended");
   }
 
   const accessToken = issueTokens(res, user._id.toString());

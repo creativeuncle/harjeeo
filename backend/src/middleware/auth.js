@@ -25,6 +25,10 @@ export const protect = asyncHandler(async (req, res, next) => {
     res.status(401);
     throw new Error("Not authorized, user not found");
   }
+  if (user.isSuspended) {
+    res.status(403);
+    throw new Error("This account has been suspended");
+  }
 
   req.user = user;
   next();

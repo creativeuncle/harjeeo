@@ -23,6 +23,18 @@ api.interceptors.response.use(
     const isRefreshCall = original?.url?.includes("/auth/refresh");
     if (error.response?.status === 401 && !original._retry && !isRefreshCall) {
       original._retry = true;
+
+      // The impersonated access token expired. Refreshing here would use
+      // the admin's own refresh cookie and silently swap the identity back
+      // without saying so — instead, cleanly end impersonation and retry
+      // as the admin.
+      const { impersonatorAdmin, stopImpersonation } = useAuthStore.getState();
+      if (impersonatorAdmin) {
+        stopImpersonation();
+        original.headers.Authorization = `Bearer ${impersonatorAdmin.accessToken}`;
+        return api(original);
+      }
+
       try {
         refreshPromise ??= api.post("/auth/refresh").finally(() => {
           refreshPromise = null;

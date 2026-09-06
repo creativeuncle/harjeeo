@@ -4,11 +4,14 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import PushPermissionBanner from "@/components/notifications/PushPermissionBanner";
 import PresenceProvider from "@/components/presence/PresenceProvider";
 import AiChatButton from "@/components/ai/AiChatButton";
+import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
 
 export default function AppLayout() {
   return (
     <PresenceProvider>
-      <div className="flex h-screen w-full overflow-hidden bg-(--color-canvas) text-(--color-text)">
+      <div className="flex h-screen w-full flex-col overflow-hidden">
+        <ImpersonationBanner />
+        <div className="flex min-h-0 flex-1 overflow-hidden bg-(--color-canvas) text-(--color-text)">
         <div className="print:hidden">
           <Sidebar />
         </div>
@@ -22,6 +25,7 @@ export default function AppLayout() {
           <main className="flex-1 overflow-y-auto print:overflow-visible">
             <Outlet />
           </main>
+        </div>
         </div>
       </div>
       <AiChatButton />
